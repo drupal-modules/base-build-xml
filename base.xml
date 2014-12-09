@@ -168,6 +168,7 @@
             <arg value="${basedir}/tests/phpunit-ci.xml" />
             <arg value="--testsuite" />
             <arg value="All Code" />
+	    <arg path="${basedir}" />
         </exec>
     </target>
 
