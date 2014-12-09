@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project>
    <target name="tools-parallel"
          description="Run tools in parallel">
@@ -170,11 +171,15 @@
         </exec>
     </target>
 
-    <target name="behat" description="Run BDD tests with Behat" depends="composer">
-        <exec executable="./bin/behat" failonerror="true" dir="${basedir}/tests">
-            <arg value="--profile" />
-            <arg value="ci" />
-        </exec>
+    <target name="behat" description="Run BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,service-layer-start,enable-bdd-code-coverage">
+       <exec executable="./bin/behat" failonerror="false" dir="${basedir}/tests">
+         <arg value="--profile" />
+         <arg value="ci" />
+       </exec>
+      <antcall target="service-layer-stop"/>
+      <antcall target="php-webserver-stop"/>
+      <antcall target="phantomjs-stop"/>
+      <antcall target="drop-database"/>
     </target>
     
     <target name="phpcov" depends="composer"
@@ -219,10 +224,10 @@
             <arg value="update" />
         </exec>
     </target>
-
+ 
  <target name="phpcb" depends="composer"
          description="Aggregate tool output with PHP_CodeBrowser">
-  <exec executable="${buildbin}/phpcb">
+  <exec executable="${buildtools}/phpcb">
    <arg value="--log" />
    <arg path="${basedir}/build/logs" />
    <arg value="--source" />
@@ -231,16 +236,14 @@
    <arg path="${basedir}/build/code-browser" />
   </exec>
  </target>
- 
-  <target name="coder"  unless="coder.executed"
+
+  <target name="coder" depends="composer"
     description="Drush to install coder module">
-    <exec executable="${buildbin}/drush" dir="${basedir}/drupal">
+    <exec executable="${buildtools}/drush" dir="${basedir}/drupal">
       <arg value="dl" />
       <arg value="coder" />
     </exec>
-    <property name="coder.executed" value="true" />
   </target>
-  
   <target name="enable-bdd-code-coverage" depends="composer"
     description="Drush to enable code_coverage module to allow its capture during BDD tests">
     <exec executable="${buildtools}/drush" dir="${basedir}/drupal">
