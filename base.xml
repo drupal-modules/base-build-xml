@@ -31,6 +31,7 @@
     <mkdir dir="${basedir}/build/code-browser"/>
     <mkdir dir="${basedir}/build/coverage"/>
     <mkdir dir="${basedir}/build/logs"/>
+    <mkdir dir="${basedir}/build/logs/coverage"/>
     <mkdir dir="${basedir}/build/pdepend"/>
     <mkdir dir="${basedir}/build/phpdox"/>
     <mkdir dir="${basedir}/build/behat"/>
