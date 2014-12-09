@@ -161,8 +161,8 @@
     </target>
 
     <target name="phpunit" description="Run unit tests with PHPUnit">
-      <env key="PATH" value="${buildbin}:${env.PATH}"/>
         <exec executable="${buildbin}/phpunit" failonerror="true">
+	  <env key="PATH" value="${buildbin}:${env.PATH}"/>
             <arg value="-d" />
             <arg value="memory_limit=2G" />
             <arg value="-c" />
