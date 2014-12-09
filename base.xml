@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
+  <property environment="env"/>
+
    <target name="tools-parallel"
          description="Run tools in parallel">
   <parallel threadCount="2">
@@ -169,7 +171,7 @@
             <arg value="${basedir}/tests/phpunit-ci.xml" />
             <arg value="--testsuite" />
             <arg value="All Code" />
-	    <arg path="${basedir}" />
+	    <arg path="${drupalmodules}" />
         </exec>
     </target>
 
