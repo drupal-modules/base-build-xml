@@ -184,12 +184,12 @@
     
     <target name="phpcov" depends="composer"
          description="Generate HTML and clover output for coverage">
-      <exec executable="${buildtools}/phpcov">
+      <exec executable="${buildbin}/phpcov">
         <arg value="merge" />
         <arg value="--clover=${basedir}/build/coverage/combined_clover.xml" />
         <arg value="${basedir}/build/logs/coverage/" />
       </exec>
-      <exec executable="${buildtools}/phpcov">
+      <exec executable="${buildbin}/phpcov">
         <arg value="merge" />
         <arg value="--html=${basedir}/build/coverage/html" />
         <arg value="${basedir}/build/logs/coverage/" />
@@ -227,7 +227,7 @@
  
  <target name="phpcb" depends="composer"
          description="Aggregate tool output with PHP_CodeBrowser">
-  <exec executable="${buildtools}/phpcb">
+  <exec executable="${buildbin}/phpcb">
    <arg value="--log" />
    <arg path="${basedir}/build/logs" />
    <arg value="--source" />
@@ -239,14 +239,14 @@
 
   <target name="coder" depends="composer"
     description="Drush to install coder module">
-    <exec executable="${buildtools}/drush" dir="${basedir}/drupal">
+    <exec executable="${buildbin}/drush" dir="${basedir}/drupal">
       <arg value="dl" />
       <arg value="coder" />
     </exec>
   </target>
   <target name="enable-bdd-code-coverage" depends="composer"
     description="Drush to enable code_coverage module to allow its capture during BDD tests">
-    <exec executable="${buildtools}/drush" dir="${basedir}/drupal">
+    <exec executable="${buildbin}/drush" dir="${basedir}/drupal">
       <arg value="-y" />
       <arg value="en" />
       <arg value="code_coverage" />
@@ -282,11 +282,11 @@
   <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
     <exec executable="bash" failonerror="true" dir="${basedir}/drupal" input="${basedir}/tests/includes/ntdp_drupal.sql">
         <arg value="-c"/>
-	<arg value="`${buildtools}/drush sql-connect`"/>
+	<arg value="`${buildbin}/drush sql-connect`"/>
     </exec>
   </target>
   <target name="drop-database" description="Clean the database" >
-	  <exec executable="${buildtools}/drush" failonerror="true" dir="${basedir}/drupal">
+	  <exec executable="${buildbin}/drush" failonerror="true" dir="${basedir}/drupal">
         <arg value="sql-drop" />
         <arg value="--yes" />
     </exec>
