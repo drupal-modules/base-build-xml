@@ -51,6 +51,9 @@
     <exclude name="sites/all/modules/contrib/coder/**/*.php" />
     <exclude name="sites/all/modules/contrib/coder/**/*.inc" />
     <exclude name="sites/all/modules/contrib/coder/**/*.module" />
+    <exclude name="sites/all/modules/coder/**/*.php" />
+    <exclude name="sites/all/modules/coder/**/*.inc" />
+    <exclude name="sites/all/modules/coder/**/*.module" />
     <modified>
       <param name="cache.cachefile" value="../cache.properties.${project}"/>
     </modified>
