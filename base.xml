@@ -142,6 +142,35 @@
    <arg path="${drupalmodules}" />
   </exec>
  </target>
+ 
+  <target name="phpcs-security" depends="composer"
+         description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
+   <symlink link="${basedir}/tests/vendor/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${basedir}/tests/vendor/pheromone/phpcs-security-audit/Security" overwrite="true"/>
+  <exec executable="${buildbin}/phpcs">
+   <arg value="-d" />
+   <arg value="memory_limit=256M" />
+   <arg value="--standard=${basedir}/tests/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml" />
+   <arg value="--extensions=php,module,inc,install,profile,theme" />
+   <!-- ignore test for now -->
+   <arg path="${drupalmodules}" />
+  </exec>
+ </target>
+
+ <target name="phpcs-security-ci" depends="composer"
+         description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
+   <symlink link="${basedir}/tests/vendor/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${basedir}/tests/vendor/pheromone/phpcs-security-audit/Security" overwrite="true"/>
+  <exec executable="${buildbin}/phpcs">
+   <arg value="--report=checkstyle" />
+   <arg value="--report-file=${basedir}/build/logs/checkstyle-security.xml" />
+   <arg value="--report-xml=${basedir}/build/logs/codesniffer-security.xml" />
+   <arg value="-d" />
+   <arg value="memory_limit=256M" />
+   <arg value="--standard=${basedir}/tests/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml" />
+   <arg value="--extensions=php,module,inc,install,profile,theme" />
+   <!-- ignore test for now -->
+   <arg path="${drupalmodules}" />
+  </exec>
+ </target>
 
  <target name="phpcpd" description="Find duplicate code using PHPCPD">
   <exec executable="${buildbin}/phpcpd">
