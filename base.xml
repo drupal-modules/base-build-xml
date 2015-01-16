@@ -208,7 +208,7 @@
         </exec>
     </target>
 
-    <target name="behat" description="Run BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,service-layer-start,enable-bdd-code-coverage">
+    <target name="behat" description="Run BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,service-layer-start,enable-bdd-code-coverage,behat-test">
        <exec executable="./bin/behat" failonerror="false" dir="${basedir}/tests">
          <arg value="--profile" />
          <arg value="ci" />
@@ -217,6 +217,14 @@
       <antcall target="php-webserver-stop"/>
       <antcall target="phantomjs-stop"/>
       <antcall target="drop-database"/>
+    </target>
+    
+    <target name="behat-test" description="Dry Run BDD tests with Behat" depends="composer">
+       <exec executable="./bin/behat" failonerror="true" dir="${basedir}/tests">
+	 <arg value="--dry-run" />
+	 <arg value="--format" />
+	 <arg value="progress" />
+       </exec>
     </target>
     
     <target name="phpcov" depends="composer"
