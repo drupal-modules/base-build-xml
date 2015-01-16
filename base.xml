@@ -213,6 +213,7 @@
       <antcall target="php-webserver-stop"/>
       <antcall target="phantomjs-stop"/>
       <antcall target="drop-database"/>
+      <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files" />
     </target>
     
     <target name="behat-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
