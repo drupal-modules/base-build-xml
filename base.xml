@@ -208,7 +208,7 @@
         </exec>
     </target>
 
-    <target name="behat" description="Run BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,service-layer-start,enable-bdd-code-coverage,behat-test">
+    <target name="behat" description="Wrapper for BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,service-layer-start,enable-bdd-code-coverage,behat-test,behat-run">
       <antcall target="service-layer-stop"/>
       <antcall target="php-webserver-stop"/>
       <antcall target="phantomjs-stop"/>
@@ -230,7 +230,7 @@
 	 <arg value="progress" />
        </exec>
        <condition property="BehatDryRun">
-	 <equals arg1="{BehatErrorCode}" arg2="0" />
+	 <equals arg1="${BehatErrorCode}" arg2="0" />
        </condition>
     </target>
     
