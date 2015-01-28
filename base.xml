@@ -360,7 +360,7 @@
     <exec executable="${basedir}/tests/merge_junit_results.py" output="${basedir}/build/logs/combined_junit.xml">
       <env key="PATH" value="/opt/rh/python27/root/usr/bin:${env.PATH}"/>
       <env key="LD_LIBRARY_PATH" value="/opt/rh/python27/root/usr/lib64:${env.LD_LIBRARY_PATH}"/>
-      <!--<arg value="${basedir}/build/logs/junit.xml"/>-->
+      <arg value="${basedir}/build/logs/junit.xml"/>
       <arg line="${converted}"/>
     </exec>
   </target>
