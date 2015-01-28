@@ -355,7 +355,7 @@
   <target name="combine-junit-xml" description="Combine JUnits xml results files into a single for using on other apps.">
     <copy file="${basedir}/build/coverage/combined_clover.xml" todir="${basedir}/build/logs" failonerror="false" />
     <fileset id="fileset" dir="${basedir}/build/behat">
-      <include name="*"/>
+      <include name="*.xml"/>
     </fileset>
     <pathconvert refid="fileset" property="converted" pathsep=" "/>
     <exec executable="${basedir}/tests/merge_junit_results.py" output="${basedir}/build/logs/junit/combined_junit.xml" failonerror="false">
