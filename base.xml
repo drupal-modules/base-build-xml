@@ -32,6 +32,7 @@
     <mkdir dir="${basedir}/build/coverage"/>
     <mkdir dir="${basedir}/build/logs"/>
     <mkdir dir="${basedir}/build/logs/coverage"/>
+    <mkdir dir="${basedir}/build/logs/junit"/>
     <mkdir dir="${basedir}/build/pdepend"/>
     <mkdir dir="${basedir}/build/phpdox"/>
     <mkdir dir="${basedir}/build/behat"/>
@@ -357,11 +358,15 @@
       <include name="*"/>
     </fileset>
     <pathconvert refid="fileset" property="converted" pathsep=" "/>
-    <exec executable="${basedir}/tests/merge_junit_results.py" output="${basedir}/build/logs/combined_junit.xml" failonerror="false">
+    <exec executable="${basedir}/tests/merge_junit_results.py" output="${basedir}/build/logs/junit/combined_junit.xml" failonerror="false">
       <env key="PATH" value="/opt/rh/python27/root/usr/bin:${env.PATH}"/>
       <env key="LD_LIBRARY_PATH" value="/opt/rh/python27/root/usr/lib64:${env.LD_LIBRARY_PATH}"/>
-      <arg value="${basedir}/build/logs/junit.xml"/>
       <arg line="${converted}"/>
+    </exec>
+    <copy file="${basedir}/build/logs/junit.xml" todir="${basedir}/build/logs/junit" failonerror="false" />
+    <exec executable="${buildbin}/phpjunitmerge" failonerror="false" >
+      <arg value="${basedir}/build/logs/junit" />
+      <arg value="${basedir}/build/logs/combined_junit.xml" />
     </exec>
   </target>
 </project>
