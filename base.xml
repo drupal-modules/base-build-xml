@@ -293,7 +293,8 @@
     description="Drush to install coder module">
     <exec executable="${buildbin}/drush" dir="${basedir}/drupal">
       <arg value="dl" />
-      <arg value="coder" />
+      <arg value="coder-7.x-2.4" />
+      <arg value="--cache" />
     </exec>
   </target>
   <target name="enable-bdd-code-coverage" depends="composer"
