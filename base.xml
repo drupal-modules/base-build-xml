@@ -293,6 +293,7 @@
   <target name="coder" depends="composer"
     description="Drush to install coder module">
     <exec executable="${buildbin}/drush" dir="${basedir}/drupal">
+      <arg value="-y" />
       <arg value="dl" />
       <arg value="coder-7.x-2.4" />
       <arg value="--cache" />
