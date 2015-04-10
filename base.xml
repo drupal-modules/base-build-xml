@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
+  <property name="drupalroot" value="drupal"/>
+  <property name="pdependignore" value=""/>
   <property environment="env"/>
 
    <target name="tools-parallel"
@@ -42,7 +44,7 @@
   <apply executable="php" failonerror="true">
    <arg value="-l" />
 
-   <fileset dir="${basedir}/drupal">
+   <fileset dir="${basedir}/${drupalroot}">
     <include name="**/*.php" />
     <include name="**/*.inc" />
     <include name="**/*.module" />
@@ -90,6 +92,7 @@
    <arg value="--jdepend-chart=${basedir}/build/pdepend/dependencies.svg" />
    <arg value="--overview-pyramid=${basedir}/build/pdepend/overview-pyramid.svg" />
    <arg value="--summary-xml=${basedir}/build/logs/pdepend.xml" />
+   <arg value="${pdependignore}" />
    <arg path="${drupalmodules}" />
   </exec>
  </target>
@@ -125,7 +128,7 @@
   <exec executable="${buildbin}/phpcs">
    <arg value="-d" />
    <arg value="memory_limit=256M" />
-   <arg value="--standard=${basedir}/drupal/sites/all/modules/contrib/coder/coder_sniffer/Drupal" />
+   <arg value="--standard=${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal" />
    <arg value="--extensions=php,module,inc,install,profile,theme" />
    <!-- ignore test for now -->
    <arg path="${drupalmodules}" />
@@ -140,7 +143,7 @@
    <arg value="--report-xml=${basedir}/build/logs/codesniffer.xml" />
    <arg value="-d" />
    <arg value="memory_limit=256M" />
-   <arg value="--standard=${basedir}/drupal/sites/all/modules/contrib/coder/coder_sniffer/Drupal" />
+   <arg value="--standard=${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal" />
    <arg value="--extensions=php,module,inc,install,profile,theme" />
    <!-- ignore test for now -->
    <arg path="${drupalmodules}" />
@@ -292,7 +295,7 @@
 
   <target name="coder" depends="composer"
     description="Drush to install coder module">
-    <exec executable="${buildbin}/drush" dir="${basedir}/drupal">
+    <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y" />
       <arg value="dl" />
       <arg value="coder-7.x-2.4" />
@@ -301,18 +304,18 @@
   </target>
   <target name="enable-bdd-code-coverage" depends="composer"
     description="Drush to enable code_coverage module to allow its capture during BDD tests">
-    <exec executable="${buildbin}/drush" dir="${basedir}/drupal">
+    <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y" />
       <arg value="en" />
       <arg value="code_coverage" />
     </exec>
   </target>
   <target name="php-webserver-start" description="Start a simple webserver for PHP files" depends="setup-database">
-        <exec executable="${basedir}/tests/test_cases/start_php_web.sh" dir="${basedir}/drupal" spawn="true">
+        <exec executable="${basedir}/tests/test_cases/start_php_web.sh" dir="${basedir}/${drupalroot}" spawn="true">
         </exec>
   </target>
   <target name="php-webserver-stop" description="Stop a simple webserver for PHP files">
-        <exec executable="${basedir}/tests/test_cases/stop_php_web.sh" dir="${basedir}/drupal" spawn="true">
+        <exec executable="${basedir}/tests/test_cases/stop_php_web.sh" dir="${basedir}/${drupalroot}" spawn="true">
         </exec>
   </target>
   <target name="phantomjs-start" description="Start a phantomjs">
@@ -332,16 +335,16 @@
         </exec>
   </target>
   <target name="configure-database" description="set settings.php file">
-    <copy file="${basedir}/tests/includes/settings.php" tofile="${basedir}/drupal/sites/default/settings.php" overwrite="yes" />
+    <copy file="${basedir}/tests/includes/settings.php" tofile="${basedir}/${drupalroot}/sites/default/settings.php" overwrite="yes" />
   </target>
   <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
-    <exec executable="bash" failonerror="true" dir="${basedir}/drupal" input="${basedir}/tests/includes/ntdp_drupal.sql">
+    <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${basedir}/tests/includes/ntdp_drupal.sql">
         <arg value="-c"/>
 	<arg value="`${buildbin}/drush sql-connect`"/>
     </exec>
   </target>
   <target name="drop-database" description="Clean the database" >
-	  <exec executable="${buildbin}/drush" failonerror="true" dir="${basedir}/drupal">
+	  <exec executable="${buildbin}/drush" failonerror="true" dir="${basedir}/${drupalroot}">
         <arg value="sql-drop" />
         <arg value="--yes" />
     </exec>
