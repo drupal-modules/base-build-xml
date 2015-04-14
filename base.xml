@@ -199,7 +199,7 @@
         </exec>
     </target>
 
-    <target name="phpunit" description="Run unit tests with PHPUnit">
+    <target name="phpunit" description="Run unit tests with PHPUnit" depends="composer">
         <exec executable="${buildbin}/phpunit" failonerror="true">
 	  <env key="PATH" value="${buildbin}:${env.PATH}"/>
             <arg value="-d" />
