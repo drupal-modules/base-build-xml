@@ -259,7 +259,6 @@
 
     <target name="composer-check" description="Check Composer">
         <exec executable="php" failonerror="true" dir="${basedir}/tests">
-	  <env key="HOME" value="/root"/>
             <arg value="composer.phar" />
             <arg value="self-update" />
         </exec>
@@ -269,7 +268,6 @@
     <target name="composer-install" description="Run Composer install" unless="composer.lock.exists">
         <exec executable="php" failonerror="true" dir="${basedir}/tests">
             <env key="TMPDIR" path="${basedir}/../" />
-	    <env key="HOME" value="/root"/>
             <arg value="composer.phar" />
             <arg value="install" />
         </exec>
@@ -278,7 +276,6 @@
     <target name="composer-update" description="Run Composer update" if="composer.lock.exists">
         <exec executable="php" failonerror="true" dir="${basedir}/tests">
             <env key="TMPDIR" path="${basedir}/../" />
-	    <env key="HOME" value="/root"/>
             <arg value="composer.phar" />
             <arg value="update" />
         </exec>
