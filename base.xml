@@ -259,6 +259,7 @@
 
     <target name="composer-check" description="Check Composer">
         <exec executable="php" failonerror="true" dir="${basedir}/tests">
+	  <env key="HOME" value="/root"/>
             <arg value="composer.phar" />
             <arg value="self-update" />
         </exec>
