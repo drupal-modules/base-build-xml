@@ -298,7 +298,7 @@
     <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y" />
       <arg value="dl" />
-      <arg value="coder-7.x-2.4" />
+      <arg value="coder-7.x-2.5" />
       <arg value="--cache" />
     </exec>
   </target>
