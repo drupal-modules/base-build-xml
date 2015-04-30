@@ -340,7 +340,7 @@
     <copy file="${basedir}/tests/includes/settings.php" tofile="${basedir}/${drupalroot}/sites/default/settings.php" overwrite="yes" />
   </target>
   
-  <target name="backup-settings" description="backup settings.php file" unless="drupal.settings.exists">
+  <target name="backup-settings" description="backup settings.php file" if="drupal.settings.exists">
     <copy file="${basedir}/${drupalroot}/sites/default/settings.php" tofile="${basedir}/${drupalroot}/sites/default/settings_dist.php" overwrite="yes" />
     <property name="drupal.settings.backedup" value="true" />
   </target>
