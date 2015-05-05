@@ -3,7 +3,8 @@
   <property name="drupalroot" value="drupal"/>
   <property name="pdependignore" value=""/>
   <property environment="env"/>
-  <available file="${basedir}/${drupalroot}/sites/default/settings.php" property="drupal.settings.exists"/>
+  <property name="drupalsite" value="default" />
+  <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
 
    <target name="tools-parallel"
          description="Run tools in parallel">
@@ -387,4 +388,32 @@
       <arg value="${basedir}/build/logs/combined_junit.xml" />
     </exec>
   </target>
+  
+   <target name="drush-composer" description="Drush to install composer dependencies" depends="composer">
+    <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
+      <arg value="-y"/>
+      <arg value="en"/>
+      <arg value="composer_manager"/>
+    </exec>
+    <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
+      <arg value="composer-json-rebuild"/>
+      <arg value="--no-dev"/>
+      <arg value="-o"/>
+    </exec>
+    <exec executable="php" dir="${basedir}/tests">
+      <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupalroot}/sites/all/libraries/composer"/>
+      <env key="COMPOSER" value="${basedir}/${drupalroot}/sites/${drupalsite}/files/composer/composer.json"/>
+      <arg value="composer.phar"/>
+      <arg value="update"/>
+      <arg value="--no-dev"/>
+      <arg value="-o"/>
+    </exec>
+    <exec executable="php" dir="${basedir}/tests">
+      <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupalroot}/sites/all/libraries/composer"/>
+      <env key="COMPOSER" value="${basedir}/${drupalroot}/sites/${drupalsite}/files/composer/composer.json"/>
+      <arg value="composer.phar"/>
+      <arg value="dump-autoload"/>
+    </exec>
+  </target>
+  
 </project>
