@@ -308,8 +308,6 @@
   <target name="enable-bdd-code-coverage" depends="composer"
     description="Drush to enable code_coverage module to allow its capture during BDD tests">
     <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
-      <arg value="-d" />
-      <arg value="memory_limit=512M" />
       <arg value="-y" />
       <arg value="en" />
       <arg value="code_coverage" />
