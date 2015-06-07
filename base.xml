@@ -233,6 +233,7 @@
     
     <target name="behat-test" description="Dry Run BDD tests with Behat" depends="composer">
        <exec executable="./bin/behat" failonerror="false" dir="${basedir}/tests" resultproperty="BehatErrorCode">
+       	 <env key="PATH" value="${env.PATH}:${buildbin}"/>
 	 <arg value="--dry-run" />
 	 <arg value="--format" />
 	 <arg value="progress" />
