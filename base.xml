@@ -5,6 +5,9 @@
   <property environment="env"/>
   <property name="drupalsite" value="default" />
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
+  <available file="${basedir}/composer.skip" property="composer.executed"/>
+  <property name="drushurl" value=""/>
+  <property name="composersite" value="all"/>
 
    <target name="tools-parallel"
          description="Run tools in parallel">
@@ -299,6 +302,7 @@
   <target name="coder" depends="composer"
     description="Drush to install coder module">
     <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
+      <arg value="${drushurl}" />
       <arg value="-y" />
       <arg value="dl" />
       <arg value="coder-7.x-2.5" />
