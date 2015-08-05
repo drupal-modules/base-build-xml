@@ -304,11 +304,11 @@
   <target name="coder" depends="composer"
     description="Drush to install coder module">
     <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
-      <arg value="${drushurl}" />
       <arg value="-y" />
       <arg value="dl" />
       <arg value="coder-7.x-2.5" />
       <arg value="--cache" />
+      <arg value="${drushurl}" />
     </exec>
   </target>
   <target name="enable-bdd-code-coverage" depends="composer"
