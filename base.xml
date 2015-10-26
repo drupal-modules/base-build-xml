@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <property name="drupalroot" value="drupal"/>
+  <property name="drupalthemes" value=""/>
   <property name="pdependignore" value=""/>
   <property environment="env"/>
   <property name="drupalsite" value="default" />
@@ -84,6 +85,7 @@
    <arg value="--names" />
    <arg value="*.php,*.module,*.inc,*.install,*.profile,*.theme" />
    <arg path="${drupalmodules}" />
+   <arg path="${drupalthemes}"/>
   </exec>
  </target>
 
@@ -99,6 +101,7 @@
    <arg value="--summary-xml=${basedir}/build/logs/pdepend.xml" />
    <arg value="${pdependignore}" />
    <arg path="${drupalmodules}" />
+   <arg path="${drupalthemes}"/>
   </exec>
  </target>
 
@@ -137,6 +140,7 @@
    <arg value="--extensions=php,module,inc,install,profile,theme" />
    <!-- ignore test for now -->
    <arg path="${drupalmodules}" />
+   <arg path="${drupalthemes}"/>
   </exec>
  </target>
 
@@ -152,6 +156,7 @@
    <arg value="--extensions=php,module,inc,install,profile,theme" />
    <!-- ignore test for now -->
    <arg path="${drupalmodules}" />
+   <arg path="${drupalthemes}"/>
   </exec>
  </target>
  
@@ -165,6 +170,7 @@
    <arg value="--extensions=php,module,inc,install,profile,theme" />
    <!-- ignore test for now -->
    <arg path="${drupalmodules}" />
+   <arg path="${drupalthemes}"/>
   </exec>
  </target>
 
@@ -181,6 +187,7 @@
    <arg value="--extensions=php,module,inc,install,profile,theme" />
    <!-- ignore test for now -->
    <arg path="${drupalmodules}" />
+   <arg path="${drupalthemes}"/>
   </exec>
  </target>
 
