@@ -101,7 +101,6 @@
    <arg value="--summary-xml=${basedir}/build/logs/pdepend.xml" />
    <arg value="${pdependignore}" />
    <arg path="${drupalmodules}" />
-   <arg path="${drupalthemes}"/>
   </exec>
  </target>
 
