@@ -198,7 +198,6 @@
    <arg value="--names" />
    <arg value="*.php,*.module,*.inc,*.install,*.profile,*.theme" />   
    <arg path="${drupalmodules}" />
-   <arg path="${drupalthemes}"/>
   </exec>
  </target>
 
