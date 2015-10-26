@@ -197,7 +197,8 @@
    <arg value="${basedir}/build/logs/pmd-cpd.xml" />
    <arg value="--names" />
    <arg value="*.php,*.module,*.inc,*.install,*.profile,*.theme" />   
-   <arg path="${drupalmodules}" />   
+   <arg path="${drupalmodules}" />
+   <arg path="${drupalthemes}"/>
   </exec>
  </target>
 
