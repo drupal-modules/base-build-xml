@@ -267,7 +267,7 @@
     </target>
 
     <target name="composer" description="Run Composer"
-	    depends="composer-check,composer-install,composer-update" unless="composer.executed">
+	    depends="composer-check,composer-install,composer-update,composer-show" unless="composer.executed">
       <property name="composer.executed" value="true" />
     </target>
 
@@ -294,7 +294,15 @@
             <arg value="update" />
         </exec>
     </target>
- 
+
+    <target name="composer-show" description="Run Composer show" if="composer.lock.exists">
+        <exec executable="php" failonerror="true" dir="${basedir}/tests">
+            <env key="TMPDIR" path="${basedir}/../" />
+            <arg value="composer.phar" />
+            <arg value="show" />
+        </exec>
+    </target>
+
  <target name="phpcb" depends="composer"
          description="Aggregate tool output with PHP_CodeBrowser">
   <exec executable="${buildbin}/phpcb">
