@@ -10,15 +10,11 @@ php:
   - 7.1
   - 7.2
 
-addons:
-  apt:
-    packages:
-    - drush
-
 before_install:
   - mkdir -v tests
 install:
   - curl -so tests/composer.phar https://getcomposer.org/composer.phar
+  - php tests/composer.phar -d=tests require drush/drush
 script:
   - ant -f base.xml composer-check
 after_script:
