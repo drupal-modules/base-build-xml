@@ -234,7 +234,6 @@
       <antcall target="php-webserver-stop"/>
       <antcall target="phantomjs-stop"/>
       <antcall target="drop-database"/>
-      <antcall target="backup-restore"/>
       <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files" />
     </target>
     
@@ -363,21 +362,8 @@
         <exec executable="${basedir}/tests/test_cases/stop_web.sh" dir="${basedir}/tests/test_cases" spawn="true">
         </exec>
   </target>
-  <target name="configure-database" description="set settings.php file" depends="backup-settings">
+  <target name="configure-database" description="set settings.php file">
     <copy file="${basedir}/${drupalroot}/sites/default/example.settings.local.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.php" overwrite="yes" />
-  </target>
-  
-  <target name="backup-settings" description="backup settings.php file" if="drupal.settings.exists">
-    <copy file="${basedir}/${drupalroot}/sites/default/settings.php" tofile="${basedir}/${drupalroot}/sites/default/settings.prev.php" overwrite="yes" />
-    <copy file="${basedir}/${drupalroot}/sites/default/settings.local.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.prev.php" overwrite="yes" />
-    <property name="drupal.settings.backedup" value="true" />
-  </target>
-  
-  <target name="backup-restore" description="restore settings.php file" if="drupal.settings.backedup">
-    <copy file="${basedir}/${drupalroot}/sites/default/settings.prev.php" tofile="${basedir}/${drupalroot}/sites/default/settings.php" overwrite="yes" />
-    <copy file="${basedir}/${drupalroot}/sites/default/settings.local.prev.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.php" overwrite="yes" />
-    <delete file="${basedir}/${drupalroot}/sites/default/settings.prev.php" if="drupal.settings.exists" />
-    <delete file="${basedir}/${drupalroot}/sites/default/settings.local.prev.php" />
   </target>
   
   <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
