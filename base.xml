@@ -7,7 +7,7 @@
   <property environment="env"/>
   <property name="drupalsite" value="default" />
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
-  <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.settings.exists"/>
+  <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.example.settings.exists"/>
   <available file="${basedir}/composer.skip" property="composer.executed"/>
   <property name="drushurl" value=""/>
   <property name="composersite" value="all"/>
@@ -374,8 +374,10 @@
   </target>
   
   <target name="backup-restore" description="restore settings.php file" if="drupal.settings.backedup">
-    <copy file="${basedir}/${drupalroot}/sites/default/settings_dist.php" tofile="${basedir}/${drupalroot}/sites/default/settings.php" overwrite="yes" />
-    <delete file="${basedir}/${drupalroot}/sites/default/settings_dist.php"/>
+    <copy file="${basedir}/${drupalroot}/sites/default/settings.prev.php" tofile="${basedir}/${drupalroot}/sites/default/settings.php" overwrite="yes" />
+    <copy file="${basedir}/${drupalroot}/sites/default/settings.local.prev.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.php" overwrite="yes" />
+    <delete file="${basedir}/${drupalroot}/sites/default/settings.prev.php" if="drupal.settings.exists" />
+    <delete file="${basedir}/${drupalroot}/sites/default/settings.local.prev.php" />
   </target>
   
   <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
