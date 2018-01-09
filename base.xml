@@ -414,7 +414,7 @@
     </exec>
   </target>
   
-   <target name="drush-composer" description="Drush to install composer dependencies" depends="composer">
+   <target name="drush-composer" description="Drush to install composer dependencies" depends="composer,setup-database">
     <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="en"/>
