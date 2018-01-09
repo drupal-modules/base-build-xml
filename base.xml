@@ -7,6 +7,7 @@
   <property environment="env"/>
   <property name="drupalsite" value="default" />
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
+  <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.settings.exists"/>
   <available file="${basedir}/composer.skip" property="composer.executed"/>
   <property name="drushurl" value=""/>
   <property name="composersite" value="all"/>
