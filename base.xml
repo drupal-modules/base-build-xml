@@ -362,8 +362,16 @@
         <exec executable="${basedir}/tests/test_cases/stop_web.sh" dir="${basedir}/tests/test_cases" spawn="true">
         </exec>
   </target>
-  <target name="configure-database" description="set settings.php file">
+  <target name="configure-database" description="Configure settings.local.php file">
     <copy file="${basedir}/${drupalroot}/sites/default/example.settings.local.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.php" overwrite="yes" />
+    <exec executable="ex" failonerror="true" dir="${basedir}/${drupalroot}">
+      <arg value="${basedir}/${drupalroot}/sites/default/settings.local.php" />
+      <arg value="+%s/'database'.*=>.*'\zs.*\ze'/${db.name}/" />
+      <arg value="+%s/'username'.*=>.*'\zs.*\ze'/${db.user}/" />
+      <arg value="+%s/'password'.*=>.*'\zs.*\ze'/${db.pass}/" />
+      <arg value="+%s/'host'.*=>.*'\zs.*\ze'/${db.host}/" />
+      <arg value="-scwq!" />
+    </exec>
   </target>
   
   <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
