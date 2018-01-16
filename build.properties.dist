@@ -1,0 +1,9 @@
+site.base=
+db.user=
+db.pass=
+db.host=
+db.port=
+db.name=
+db.url=mysql://${db.user}:${db.pass}@${db.host}/${db.name}
+admin.user=
+admin.pass=
