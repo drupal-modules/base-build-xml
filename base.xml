@@ -218,14 +218,14 @@
 
     <target name="phpunit" description="Run unit tests with PHPUnit" depends="composer">
         <exec executable="${buildbin}/phpunit" failonerror="true">
-	  <env key="PATH" value="${buildbin}:${env.PATH}"/>
+    <env key="PATH" value="${buildbin}:${env.PATH}"/>
             <arg value="-d" />
             <arg value="memory_limit=2G" />
             <arg value="-c" />
             <arg value="${basedir}/tests/phpunit-ci.xml" />
             <arg value="--testsuite" />
             <arg value="All Code" />
-	    <arg path="${drupalmodules}" />
+      <arg path="${drupalmodules}" />
         </exec>
     </target>
 
@@ -239,7 +239,7 @@
     
     <target name="behat-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
        <exec executable="./bin/behat" failonerror="false" dir="${basedir}/tests">
-       	 <env key="PATH" value="${env.PATH}:${buildbin}"/>
+          <env key="PATH" value="${env.PATH}:${buildbin}"/>
          <arg value="--profile" />
          <arg value="ci" />
        </exec>
@@ -247,13 +247,13 @@
     
     <target name="behat-test" description="Dry Run BDD tests with Behat" depends="composer">
        <exec executable="./bin/behat" failonerror="false" dir="${basedir}/tests" resultproperty="BehatErrorCode">
-       	 <env key="PATH" value="${env.PATH}:${buildbin}"/>
-	 <arg value="--dry-run" />
-	 <arg value="--format" />
-	 <arg value="progress" />
+          <env key="PATH" value="${env.PATH}:${buildbin}"/>
+            <arg value="--dry-run" />
+            <arg value="--format" />
+            <arg value="progress" />
        </exec>
        <condition property="BehatDryRun">
-	 <equals arg1="${BehatErrorCode}" arg2="0" />
+   <equals arg1="${BehatErrorCode}" arg2="0" />
        </condition>
     </target>
     
@@ -272,7 +272,7 @@
     </target>
 
     <target name="composer" description="Run Composer"
-	    depends="composer-check,composer-install,composer-update,composer-show" unless="composer.executed">
+      depends="composer-check,composer-install,composer-update,composer-show" unless="composer.executed">
       <property name="composer.executed" value="true" />
     </target>
 
@@ -372,16 +372,18 @@
       <arg value="+%s/'host'.*=>.*'\zs.*\ze'/${db.host}/" />
       <arg value="-scwq!" />
     </exec>
+    <available file="${basedir}/${drupalroot}/sites/default/settings.local.php" property="settings.local.php.exists"/>
   </target>
   
   <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
-    <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${basedir}/tests/includes/ntdp_drupal.sql">
+    <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${basedir}/tests/includes/ntdp_drupal.sql"
+      unless="settings.local.php.exists">
         <arg value="-c"/>
-	<arg value="`${buildbin}/drush sql-connect`"/>
+        <arg value="`${buildbin}/drush sql-connect`"/>
     </exec>
   </target>
   <target name="drop-database" description="Clean the database" >
-	  <exec executable="${buildbin}/drush" failonerror="true" dir="${basedir}/${drupalroot}">
+    <exec executable="${buildbin}/drush" failonerror="true" dir="${basedir}/${drupalroot}">
         <arg value="sql-drop" />
         <arg value="--yes" />
     </exec>
