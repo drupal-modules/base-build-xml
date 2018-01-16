@@ -7,6 +7,7 @@
   <property environment="env"/>
   <property name="drupalsite" value="default" />
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
+  <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.example.settings.exists"/>
   <available file="${basedir}/composer.skip" property="composer.executed"/>
   <property name="drushurl" value=""/>
   <property name="composersite" value="all"/>
@@ -233,7 +234,6 @@
       <antcall target="php-webserver-stop"/>
       <antcall target="phantomjs-stop"/>
       <antcall target="drop-database"/>
-      <antcall target="backup-restore"/>
       <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files" />
     </target>
     
@@ -362,18 +362,8 @@
         <exec executable="${basedir}/tests/test_cases/stop_web.sh" dir="${basedir}/tests/test_cases" spawn="true">
         </exec>
   </target>
-  <target name="configure-database" description="set settings.php file" depends="backup-settings">
-    <copy file="${basedir}/tests/includes/settings.php" tofile="${basedir}/${drupalroot}/sites/default/settings.php" overwrite="yes" />
-  </target>
-  
-  <target name="backup-settings" description="backup settings.php file" if="drupal.settings.exists">
-    <copy file="${basedir}/${drupalroot}/sites/default/settings.php" tofile="${basedir}/${drupalroot}/sites/default/settings_dist.php" overwrite="yes" />
-    <property name="drupal.settings.backedup" value="true" />
-  </target>
-  
-  <target name="backup-restore" description="restore settings.php file" if="drupal.settings.backedup">
-    <copy file="${basedir}/${drupalroot}/sites/default/settings_dist.php" tofile="${basedir}/${drupalroot}/sites/default/settings.php" overwrite="yes" />
-    <delete file="${basedir}/${drupalroot}/sites/default/settings_dist.php"/>
+  <target name="configure-database" description="set settings.php file">
+    <copy file="${basedir}/${drupalroot}/sites/default/example.settings.local.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.php" overwrite="yes" />
   </target>
   
   <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
@@ -414,7 +404,7 @@
     </exec>
   </target>
   
-   <target name="drush-composer" description="Drush to install composer dependencies" depends="composer">
+   <target name="drush-composer" description="Drush to install composer dependencies" depends="composer,setup-database">
     <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="en"/>
@@ -431,6 +421,7 @@
       <arg value="composer.phar"/>
       <arg value="update"/>
       <arg value="--no-dev"/>
+      <arg value="--prefer-source"/>
       <arg value="-o"/>
     </exec>
     <exec executable="php" dir="${basedir}/tests">
