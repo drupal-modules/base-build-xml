@@ -375,9 +375,8 @@
     <available file="${basedir}/${drupalroot}/sites/default/settings.local.php" property="settings.local.php.exists"/>
   </target>
   
-  <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
-    <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${basedir}/tests/includes/ntdp_drupal.sql"
-      unless="settings.local.php.exists">
+  <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database" unless="settings.local.php.exists">
+    <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${basedir}/tests/includes/ntdp_drupal.sql">
         <arg value="-c"/>
         <arg value="`${buildbin}/drush sql-connect`"/>
     </exec>
