@@ -421,6 +421,7 @@
       <arg value="composer.phar"/>
       <arg value="update"/>
       <arg value="--no-dev"/>
+      <arg value="--prefer-source"/>
       <arg value="-o"/>
     </exec>
     <exec executable="php" dir="${basedir}/tests">
