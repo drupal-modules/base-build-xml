@@ -3,7 +3,7 @@
   "description": "A base Ant build config to build and test Drupal code.",
   "license": "GPL",
   "keywords": [ "ant", "build", "php", "Drupal" ],
-  "require-dev": {
+  "require": {
     "andreas-weber/php-junit-merge":   "1.*@stable",
     "behat/behat":                     "2.*@stable",
     "cweagans/composer-patches":       "~1.0",
