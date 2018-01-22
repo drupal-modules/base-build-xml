@@ -20,6 +20,7 @@
     "squizlabs/php_codesniffer":       "2.*@stable",
     "vipsoft/code-coverage-extension": "2.*@dev"
   },
+  "minimum-stability": "dev",
   "repositories": [
     {
       "type": "vcs",
