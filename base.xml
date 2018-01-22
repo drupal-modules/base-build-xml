@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <!-- Sets the default properties. Override in your build file when needed. -->
+  <property environment="env"/>
   <property name="drupalroot" value=""/>
   <property name="drupalthemes" value="."/> <!-- E.g. ${basedir}/${drupalroot}/sites/all/themes -->
   <property name="drupalmodules" value="."/> <!-- E.g. ${basedir}/${drupalroot}/sites/all/modules/custom -->
-  <property name="pdependarg" value=""/>
-  <property environment="env"/>
+  <property name="pdependarg" value="--quiet"/>
   <property name="drupalsite" value="default"/>
   <property name="drushurl" value=""/>
   <property name="composersite" value="all" />
   <property name="composerdir" value="${basedir}/tests" />
   <property name="buildbin" value="${composerdir}/bin" />
+  <property name="fileexts" value="php,module,inc,install,profile,theme" />
+  <property name="fileextsexp" value="*.php,*.module,*.inc,*.install,*.profile,*.theme" />
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.example.settings.exists"/>
   <available file="${composerdir}/composer.skip" property="composer.executed"/>
@@ -96,7 +98,7 @@
       <arg line="--exclude" />
       <arg path="${buildbin}"/>
       <arg line="-e" />
-      <arg value="php,module,inc,install,profile,theme"/>
+      <arg value="${fileexts}"/>
     </exec>
   </target>
 
@@ -105,7 +107,7 @@
    <arg value="--log-csv" />
    <arg value="${basedir}/build/logs/phploc.csv" />
    <arg value="--names" />
-   <arg value="*.php,*.module,*.inc,*.install,*.profile,*.theme" />
+   <arg value="${fileextsexp}" />
    <arg path="${drupalmodules}" />
    <arg path="${drupalthemes}"/>
   </exec>
@@ -116,7 +118,7 @@
   <exec executable="${buildbin}/pdepend">
    <arg value="-d" />
    <arg value="memory_limit=256M" />
-   <arg value="--suffix=php,module,inc,install,profile,theme" />
+   <arg value="--suffix=${fileexts}" />
    <arg value="--jdepend-xml=${basedir}/build/logs/jdepend.xml" />
    <arg value="--jdepend-chart=${basedir}/build/pdepend/dependencies.svg" />
    <arg value="--overview-pyramid=${basedir}/build/pdepend/overview-pyramid.svg" />
@@ -131,7 +133,7 @@
          description="Perform project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
   <exec executable="${buildbin}/phpmd">
    <arg value="--suffixes" />
-   <arg value="php,module,inc,install,profile,theme" />
+   <arg value="${fileexts}" />
    <arg path="${drupalmodules}" />
    <arg value="text" />
    <!--<arg value="${basedir}/build/phpmd.xml" />-->
@@ -143,7 +145,7 @@
          description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
   <exec executable="${buildbin}/phpmd">
    <arg value="--suffixes" />
-   <arg value="php,module,inc,install,profile,theme" />
+   <arg value="${fileexts}" />
    <arg path="${drupalmodules}" />
    <arg value="xml" />
    <arg value="codesize,unusedcode,naming" />
@@ -159,7 +161,7 @@
    <arg value="-d" />
    <arg value="memory_limit=256M" />
    <arg value="--standard=${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal" />
-   <arg value="--extensions=php,module,inc,install,profile,theme" />
+   <arg value="--extensions=${fileexts}" />
    <!-- ignore test for now -->
    <arg path="${drupalmodules}" />
    <arg path="${drupalthemes}"/>
@@ -175,7 +177,7 @@
    <arg value="-d" />
    <arg value="memory_limit=256M" />
    <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/> <!--or: ${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal-->
-   <arg value="--extensions=php,module,inc,install,profile,theme" />
+   <arg value="--extensions=${fileexts}" />
    <arg path="${drupalmodules}" />
    <arg path="${drupalthemes}"/>
   </exec>
@@ -188,7 +190,7 @@
    <arg value="-d" />
    <arg value="memory_limit=256M" />
    <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml" />
-   <arg value="--extensions=php,module,inc,install,profile,theme" />
+   <arg value="--extensions={fileexts}"/>
    <arg path="${drupalmodules}" />
    <arg path="${drupalthemes}"/>
   </exec>
@@ -202,7 +204,7 @@
    <arg value="memory_limit=256M" />
    <arg value="--report=checkstyle" />
    <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml" />
-   <arg value="--extensions=php,module,inc,install,profile,theme" />
+   <arg value="--extensions=${fileexts}"/>
    <arg value="--report-file=${basedir}/build/logs/checkstyle-security.xml" />
    <arg value="--report-xml=${basedir}/build/logs/codesniffer-security.xml" />
    <arg path="${drupalmodules}" />
@@ -215,7 +217,7 @@
    <arg value="--log-pmd" />
    <arg value="${basedir}/build/logs/pmd-cpd.xml" />
    <arg value="--names" />
-   <arg value="*.php,*.module,*.inc,*.install,*.profile,*.theme" />
+   <arg value="${fileextsexp}" />
    <arg path="${drupalmodules}" />
   </exec>
  </target>
