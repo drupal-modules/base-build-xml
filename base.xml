@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <!-- Sets the default properties. Override in your build file when needed. -->
-  <property name="drupalroot" value="" />
-  <property name="drupalthemes" value="" />
-  <property name="drupalmodules" value="${basedir}/${drupalroot}/sites/all/modules/custom" />
-  <property name="pdependarg" value="" />
+  <property name="drupalroot" value=""/>
+  <property name="drupalthemes" value="."/> <!-- E.g. ${basedir}/${drupalroot}/sites/all/themes -->
+  <property name="drupalmodules" value="."/> <!-- E.g. ${basedir}/${drupalroot}/sites/all/modules/custom -->
+  <property name="pdependarg" value=""/>
   <property environment="env"/>
-  <property name="drupalsite" value="default" />
+  <property name="drupalsite" value="default"/>
   <property name="drushurl" value=""/>
   <property name="composersite" value="all" />
   <property name="composerdir" value="${basedir}/tests" />
