@@ -194,7 +194,7 @@
    <arg value="--log-pmd" />
    <arg value="${basedir}/build/logs/pmd-cpd.xml" />
    <arg value="--names" />
-   <arg value="*.php,*.module,*.inc,*.install,*.profile,*.theme" />   
+   <arg value="*.php,*.module,*.inc,*.install,*.profile,*.theme" />
    <arg path="${drupalmodules}" />
   </exec>
  </target>
@@ -229,7 +229,7 @@
       <antcall target="drop-database"/>
       <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files" />
     </target>
-    
+
     <target name="behat-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
        <exec executable="./bin/behat" failonerror="false" dir="${composerdir}">
           <env key="PATH" value="${env.PATH}:${buildbin}"/>
@@ -237,7 +237,7 @@
          <arg value="ci" />
        </exec>
     </target>
-    
+
     <target name="behat-test" description="Dry Run BDD tests with Behat" depends="composer">
        <exec executable="./bin/behat" failonerror="false" dir="${composerdir}" resultproperty="BehatErrorCode">
           <env key="PATH" value="${env.PATH}:${buildbin}"/>
@@ -249,7 +249,7 @@
    <equals arg1="${BehatErrorCode}" arg2="0" />
        </condition>
     </target>
-    
+
     <target name="phpcov" depends="composer"
          description="Generate HTML and clover output for coverage">
       <exec executable="${buildbin}/phpcov">
@@ -265,8 +265,15 @@
     </target>
 
     <target name="composer" description="Run Composer"
-      depends="composer-check,composer-install,composer-update,composer-show" unless="composer.executed">
+      depends="get-composer,composer-check,composer-install,composer-update,composer-show" unless="composer.executed">
       <property name="composer.executed" value="true" />
+    </target>
+
+    <target name="get-composer" description="Get Composer" unless="composer.phar.exists">
+      <get dest="${composerdir}">
+        <url url="https://getcomposer.org/composer.phar" />
+      </get>
+        <available file="${composerdir}/composer.phar" property="composer.phar.exists"/>
     </target>
 
     <target name="composer-check" description="Check Composer">
@@ -367,7 +374,7 @@
     </exec>
     <available file="${basedir}/${drupalroot}/sites/default/settings.local.php" property="settings.local.php.exists"/>
   </target>
-  
+
   <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
     <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${composerdir}/includes/ntdp_drupal.sql">
         <arg value="-c"/>
@@ -405,7 +412,7 @@
       <arg value="${basedir}/build/logs/combined_junit.xml" />
     </exec>
   </target>
-  
+
    <target name="drush-composer" description="Drush to install composer dependencies" depends="composer,setup-database">
     <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
@@ -433,5 +440,5 @@
       <arg value="dump-autoload"/>
     </exec>
   </target>
-  
+
 </project>
