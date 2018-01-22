@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
+  <!-- Sets the default properties. Override in your build file when needed. -->
   <property name="drupalroot" value="" />
   <property name="drupalthemes" value="" />
   <property name="drupalmodules" value="${basedir}/${drupalroot}/sites/all/modules/custom" />
-  <!-- Extra argument for pdepend if needed. -->
   <property name="pdependarg" value="" />
   <property environment="env"/>
   <property name="drupalsite" value="default" />
+  <property name="drushurl" value=""/>
+  <property name="composersite" value="all" />
+  <property name="composerdir" value="${basedir}/tests" />
+  <property name="buildbin" value="${composerdir}/bin" />
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.example.settings.exists"/>
   <available file="${basedir}/composer.skip" property="composer.executed"/>
-  <property name="drushurl" value=""/>
-  <property name="composerdir" value="${basedir}/tests" />
-  <property name="composersite" value="all" />
+  <available file="${buildbin}/composer.phar" property="composer.phar.exists"/>
 
   <target name="tools-parallel" description="Run tools in parallel">
    <parallel threadCount="2">
@@ -270,15 +272,16 @@
     </target>
 
     <target name="get-composer" description="Get Composer" unless="composer.phar.exists">
-      <get dest="${composerdir}">
+      <mkdir dir="${buildbin}" />
+      <get dest="${buildbin}" skipexisting="true">
         <url url="https://getcomposer.org/composer.phar" />
       </get>
-        <available file="${composerdir}/composer.phar" property="composer.phar.exists"/>
+      <available file="${buildbin}/composer.phar" property="composer.phar.exists"/>
     </target>
 
     <target name="composer-check" description="Check Composer">
         <exec executable="php" failonerror="true" dir="${composerdir}">
-            <arg value="composer.phar" />
+            <arg value="${buildbin}/composer.phar" />
             <arg value="self-update" />
         </exec>
         <available file="${composerdir}/composer.lock" property="composer.lock.exists"/>
@@ -286,24 +289,21 @@
 
     <target name="composer-install" description="Run Composer install" unless="composer.lock.exists">
         <exec executable="php" failonerror="true" dir="${composerdir}">
-            <env key="TMPDIR" path="${basedir}/../" />
-            <arg value="composer.phar" />
+            <arg value="${buildbin}/composer.phar" />
             <arg value="install" />
         </exec>
     </target>
 
     <target name="composer-update" description="Run Composer update" if="composer.lock.exists">
         <exec executable="php" failonerror="true" dir="${composerdir}">
-            <env key="TMPDIR" path="${basedir}/../" />
-            <arg value="composer.phar" />
+            <arg value="${buildbin}/composer.phar" />
             <arg value="update" />
         </exec>
     </target>
 
     <target name="composer-show" description="Run Composer show" if="composer.lock.exists">
         <exec executable="php" failonerror="true" dir="${composerdir}">
-            <env key="TMPDIR" path="${basedir}/../" />
-            <arg value="composer.phar" />
+            <arg value="${buildbin}/composer.phar" />
             <arg value="show" />
         </exec>
     </target>
@@ -427,7 +427,7 @@
     <exec executable="php" dir="${composerdir}">
       <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupalroot}/sites/all/libraries/composer"/>
       <env key="COMPOSER" value="${basedir}/${drupalroot}/sites/${drupalsite}/files/composer/composer.json"/>
-      <arg value="composer.phar"/>
+      <arg value="${buildbin}/composer.phar"/>
       <arg value="update"/>
       <arg value="--no-dev"/>
       <arg value="--prefer-source"/>
@@ -436,7 +436,7 @@
     <exec executable="php" dir="${composerdir}">
       <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupalroot}/sites/all/libraries/composer"/>
       <env key="COMPOSER" value="${basedir}/${drupalroot}/sites/${drupalsite}/files/composer/composer.json"/>
-      <arg value="composer.phar"/>
+      <arg value="${buildbin}/composer.phar"/>
       <arg value="dump-autoload"/>
     </exec>
   </target>
