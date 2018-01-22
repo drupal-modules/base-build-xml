@@ -16,6 +16,10 @@
   <available file="${composerdir}/composer.skip" property="composer.executed"/>
   <available file="${buildbin}/composer.phar" property="composer.phar.exists"/>
 
+  <condition property="parallel-lint" value="${buildbin}/parallel-lint.bat" else="${buildbin}/parallel-lint">
+    <os family="windows"/>
+  </condition>
+
   <target name="tools-parallel" description="Run tools in parallel">
    <parallel threadCount="2">
     <sequential>
@@ -82,6 +86,15 @@
    </fileset>
   </apply>
  </target>
+
+  <target name="parallel-lint" description="Run PHP parallel lint">
+    <exec executable="${parallel-lint}" failonerror="true">
+      <arg line="--exclude" />
+      <arg path="${buildbin}"/>
+      <arg line="-e" />
+      <arg value="php,module,inc,install,profile,theme"/>
+    </exec>
+  </target>
 
  <target name="phploc" description="Measure project size using PHPLOC">
   <exec executable="${buildbin}/phploc">
