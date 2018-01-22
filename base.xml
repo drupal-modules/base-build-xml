@@ -13,7 +13,7 @@
   <property name="buildbin" value="${composerdir}/bin" />
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.example.settings.exists"/>
-  <available file="${basedir}/composer.skip" property="composer.executed"/>
+  <available file="${composerdir}/composer.skip" property="composer.executed"/>
   <available file="${buildbin}/composer.phar" property="composer.phar.exists"/>
 
   <target name="tools-parallel" description="Run tools in parallel">
@@ -36,6 +36,8 @@
     <delete dir="${basedir}/build/logs"/>
     <delete dir="${basedir}/build/pdepend"/>
     <delete dir="${basedir}/build/behat"/>
+    <delete file="${composerdir}/composer.skip"/>
+    <delete file="${composerdir}/composer.lock"/>
  </target>
 
  <target name="prepare" depends="clean,composer,coder"
