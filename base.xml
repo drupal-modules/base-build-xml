@@ -78,8 +78,10 @@
     <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
     <exclude name="sites/all/libraries/**/Resources/**/*.php" />
     <exclude name="${vendordir}/**/Resources/**/*.php" />
-    <!-- @see: https://github.com/JakubOnderka/PHP-Parallel-Lint/tree/master/tests/examples -->
+    <!-- E.g. vendor/jakub-onderka/php-parallel-lint/tests/examples -->
     <exclude name="${vendordir}/**/examples/**/*.php" />
+    <!-- E.g. vendor/pdepend/pdepend/src/test/resources/files -->
+    <exclude name="${vendordir}/**/resources/**/*.php" />
     <modified>
       <param name="cache.cachefile" value="../cache.properties.${project}"/>
     </modified>
