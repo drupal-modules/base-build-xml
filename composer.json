@@ -23,6 +23,9 @@
     "vipsoft/code-coverage-extension": "2.*@dev"
   },
   "minimum-stability": "dev",
+  "config": {
+    "bin-dir": "bin/"
+  },
   "repositories": [
     {
       "type": "vcs",
