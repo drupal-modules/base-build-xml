@@ -74,6 +74,8 @@
     <exclude name="sites/all/libraries/**/Tests/**/*.php" />
     <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
     <exclude name="sites/all/libraries/**/Resources/**/*.php" />
+    <!-- @see: https://github.com/JakubOnderka/PHP-Parallel-Lint/tree/master/tests/examples -->
+    <exclude name="vendor/**/examples/**/*.php" />
     <modified>
       <param name="cache.cachefile" value="../cache.properties.${project}"/>
     </modified>
