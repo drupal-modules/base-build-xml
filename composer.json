@@ -4,10 +4,10 @@
   "license": "GPL",
   "keywords": [ "ant", "build", "php", "Drupal" ],
   "require": {
+    "NT/drupal-phpunit":               "dev-master",
     "andreas-weber/php-junit-merge":   "1.*@stable",
     "behat/behat":                     "2.*@stable",
     "cweagans/composer-patches":       "~1.0",
-    "NT/drupal-phpunit":               "*@dev",
     "pdepend/pdepend":                 ">=1.1.0@stable",
     "pheromone/phpcs-security-audit":  "dev-master",
     "phploc/phploc":                   ">=1.7.4@stable",
