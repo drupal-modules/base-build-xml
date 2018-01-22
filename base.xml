@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
   <property name="drupalroot" value="" />
-  <property name="drupalmodules" value="${basedir}/${drupalroot}/sites/all/modules/custom" />
   <property name="drupalthemes" value="" />
+  <property name="drupalmodules" value="${basedir}/${drupalroot}/sites/all/modules/custom" />
   <!-- Extra argument for pdepend if needed. -->
   <property name="pdependarg" value="" />
   <property environment="env"/>
