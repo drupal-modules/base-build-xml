@@ -280,32 +280,33 @@
     </target>
 
     <target name="composer-check" description="Check Composer">
-        <exec executable="php" failonerror="true" dir="${composerdir}">
-            <arg value="${buildbin}/composer.phar" />
-            <arg value="self-update" />
-        </exec>
-        <available file="${composerdir}/composer.lock" property="composer.lock.exists"/>
+      <exec executable="php" failonerror="true" dir="${composerdir}">
+        <arg value="${buildbin}/composer.phar" />
+        <arg value="self-update" />
+      </exec>
+      <available file="${composerdir}/composer.lock" property="composer.lock.exists"/>
     </target>
 
     <target name="composer-install" description="Run Composer install" unless="composer.lock.exists">
-        <exec executable="php" failonerror="true" dir="${composerdir}">
-            <arg value="${buildbin}/composer.phar" />
-            <arg value="install" />
-        </exec>
+      <exec executable="php" failonerror="true" dir="${composerdir}">
+        <arg value="${buildbin}/composer.phar" />
+        <arg value="install" />
+      </exec>
     </target>
 
     <target name="composer-update" description="Run Composer update" if="composer.lock.exists">
-        <exec executable="php" failonerror="true" dir="${composerdir}">
-            <arg value="${buildbin}/composer.phar" />
-            <arg value="update" />
-        </exec>
+      <exec executable="php" failonerror="true" dir="${composerdir}">
+        <arg value="${buildbin}/composer.phar" />
+        <arg value="update" />
+      </exec>
     </target>
 
     <target name="composer-show" description="Run Composer show" if="composer.lock.exists">
-        <exec executable="php" failonerror="true" dir="${composerdir}">
-            <arg value="${buildbin}/composer.phar" />
-            <arg value="show" />
-        </exec>
+      <exec executable="php" failonerror="true" dir="${composerdir}" outputproperty="output">
+        <arg value="${buildbin}/composer.phar" />
+        <arg value="show" />
+      </exec>
+      <echo message="${output}" />
     </target>
 
  <target name="phpcb" depends="composer"
