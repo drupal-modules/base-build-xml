@@ -8,11 +8,12 @@
   <property name="pdependarg" value="--quiet"/>
   <property name="drupalsite" value="default"/>
   <property name="drushurl" value=""/>
-  <property name="composersite" value="all" />
-  <property name="composerdir" value="${basedir}/tests" />
+  <property name="composersite" value="all"/>
+  <property name="composerdir" value="${basedir}/tests"/>
+  <property name="vendordir" value="${composerdir}/vendor"/>
   <property name="buildbin" value="${composerdir}/bin" />
-  <property name="fileexts" value="php,module,inc,install,profile,theme" />
-  <property name="fileextsexp" value="*.php,*.module,*.inc,*.install,*.profile,*.theme" />
+  <property name="fileexts" value="php,module,inc,install,profile,theme"/>
+  <property name="fileextsexp" value="*.php,*.module,*.inc,*.install,*.profile,*.theme"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.example.settings.exists"/>
   <available file="${composerdir}/composer.skip" property="composer.executed"/>
@@ -218,6 +219,8 @@
    <arg value="${basedir}/build/logs/pmd-cpd.xml" />
    <arg value="--names" />
    <arg value="${fileextsexp}" />
+   <arg value="--exclude" />
+   <arg value="${vendordir}" />
    <arg path="${drupalmodules}" />
   </exec>
  </target>
