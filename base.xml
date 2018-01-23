@@ -16,6 +16,7 @@
   <property name="builddir" value="${composerdir}/build"/>   <!-- Build dir for result files. -->
   <property name="fileexts" value="php,module,inc,install,profile,theme"/>
   <property name="fileextsexp" value="*.php,*.module,*.inc,*.install,*.profile,*.theme"/>
+  <available file="${basedir}/${drupalroot}/index.php" property="drupal.exists"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.example.settings.exists"/>
   <available file="${composerdir}/composer.skip" property="composer.executed"/>
@@ -171,7 +172,7 @@
   </exec>
  </target>
 
- <target name="phpcs" depends="composer,coder"
+ <target name="phpcs" depends="composer,coder" if="drupal.exists"
          description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
   <exec executable="${buildbin}/phpcs">
    <arg value="-d"/>
@@ -192,7 +193,7 @@
    <arg value="--report-xml=${builddir}/logs/codesniffer.xml"/>
    <arg value="-d"/>
    <arg value="memory_limit=256M"/>
-   <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/> <!--or: ${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal-->
+   <arg value="--standard=${vendordir}/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/> <!--or: ${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal-->
    <arg value="--extensions=${fileexts}"/>
    <arg path="${drupalmodules}"/>
    <arg path="${drupalthemes}"/>
@@ -201,11 +202,11 @@
 
   <target name="phpcs-security" depends="composer"
           description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
-   <symlink link="${composerdir}/vendor/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${basedir}/tests/vendor/pheromone/phpcs-security-audit/Security" overwrite="true"/>
+   <symlink link="${vendordir}/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${vendordir}/pheromone/phpcs-security-audit/Security" overwrite="true"/>
   <exec executable="${buildbin}/phpcs">
    <arg value="-d"/>
    <arg value="memory_limit=256M"/>
-   <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/>
+   <arg value="--standard=${vendordir}/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/>
    <arg value="--extensions={fileexts}"/>
    <arg path="${drupalmodules}"/>
    <arg path="${drupalthemes}"/>
@@ -214,12 +215,12 @@
 
  <target name="phpcs-security-ci" depends="composer"
           description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
-    <symlink link="${composerdir}/vendor/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${basedir}/tests/vendor/pheromone/phpcs-security-audit/Security" overwrite="true"/>
+    <symlink link="${vendordir}/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${vendordir}/pheromone/phpcs-security-audit/Security" overwrite="true"/>
   <exec executable="${buildbin}/phpcs">
    <arg value="-d"/>
    <arg value="memory_limit=256M"/>
    <arg value="--report=checkstyle"/>
-   <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/>
+   <arg value="--standard=${vendordir}/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/>
    <arg value="--extensions=${fileexts}"/>
    <arg value="--report-file=${builddir}/logs/checkstyle-security.xml"/>
    <arg value="--report-xml=${builddir}/logs/codesniffer-security.xml"/>
@@ -360,8 +361,7 @@
   </exec>
  </target>
 
-  <target name="coder" depends="composer"
-    description="Drush to install coder module">
+  <target name="coder" depends="composer" description="Drush to install Coder module" if="drupal.exists">
     <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="dl"/>
