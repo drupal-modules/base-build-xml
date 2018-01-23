@@ -1,3 +1,2 @@
-#!/bin/bash
-PID=$(cat php_web.pid)
-kill -HUP $PID
+#!/usr/bin/env bash
+kill -HUP $(cat php_web.pid)

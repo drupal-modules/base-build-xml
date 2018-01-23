@@ -1,3 +1,2 @@
-#!/bin/bash
-PID=$(cat phantomjs.pid)
-kill -HUP $PID
+#!/usr/bin/env bash
+kill -HUP $(cat phantomjs.pid)

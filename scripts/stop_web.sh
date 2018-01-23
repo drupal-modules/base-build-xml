@@ -1,3 +1,2 @@
-#!/bin/bash
-PID=$(cat web.pid)
-kill -HUP $PID
+#!/usr/bin/env bash
+kill -HUP $(cat web.pid)
