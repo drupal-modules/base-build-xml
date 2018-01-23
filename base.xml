@@ -343,6 +343,7 @@
       <exec executable="php" failonerror="true" dir="${composerdir}">
         <arg value="${composerbinfile}"/>
         <arg value="install"/>
+        <arg value="--prefer-dist"/>
         <arg value="--verbose"/>
       </exec>
     </target>
@@ -351,6 +352,7 @@
       <exec executable="php" failonerror="true" dir="${composerdir}">
         <arg value="${composerbinfile}"/>
         <arg value="update"/>
+        <arg value="--prefer-dist"/>
       </exec>
     </target>
 
