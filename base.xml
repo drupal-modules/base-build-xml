@@ -77,6 +77,8 @@
     <include name="**/*.theme"/>
     <!-- Excludes any vendor dirs within Drupal root. -->
     <exclude name="**/vendor/**/*.php"/>
+    <!-- Excludes coder_sniffer dir. -->
+    <exclude name="**/coder_sniffer/Drupal/Test/**/*.php"/>
     <!-- @see: https://github.com/symfony/symfony/issues/11921 -->
     <exclude name="sites/all/libraries/**/Tests/**/*.php"/>
     <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
@@ -88,9 +90,9 @@
 
    <fileset dir="${composerdir}">
     <include name="**/*.php"/>
-    <!-- @see: http://cgit.drupalcode.org/coder/tree/coder_sniffer/Drupal/Test/bad -->
-    <exclude name="coder/**/Test/**/*.php"/>
-    <!-- Ignores all PHP files found in vendor dir. -->
+    <!-- Excludes coder_sniffer dir. -->
+    <exclude name="**/coder_sniffer/Drupal/Test/**/*.php"/>
+    <!-- Ignores all PHP files found within vendor dir. -->
     <exclude name="vendor/**/*.php"/>
     <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
     <exclude name="vendor/**/Resources/**/*.php"/>
