@@ -9,12 +9,19 @@
   <property name="pdependarg" value="--quiet"/>
   <property name="drupalsite" value="default"/>
   <property name="drushurl" value=""/>
+  <!-- Define Composer's main directory (location of composer.json file). -->
+  <property name="composerdir" value="${basedir}"/>
+  <!-- Define Composer's bin-dir. -->
+  <property name="composerbindir" value="${composerdir}/bin"/>
+  <!-- Define Composer's executable binary file. -->
+  <property name="composerbinfile" value="${composerbindir}/composer.phar"/>
   <property name="composersite" value="all"/>
-  <property name="composerdir" value="${basedir}/tests"/>    <!-- Composer's main directory (location of composer.json). -->
-  <property name="vendordir" value="${composerdir}/vendor"/> <!-- Composer's vendor dir. -->
-  <property name="buildbin" value="${composerdir}/bin"/>     <!-- Composer's bin-dir. -->
-  <property name="builddir" value="${composerdir}/build"/>   <!-- Build dir for result files. -->
-  <property name="scriptsdir" value="${vendordir}/NT/base-build-xml/scripts"/> <!-- Base build scripts dir. -->
+  <!-- Composer's vendor dir. -->
+  <property name="vendordir" value="${composerdir}/vendor"/>
+  <!-- Build dir for result files. -->
+  <property name="builddir" value="${composerdir}/build"/>
+  <!-- Base build scripts dir. -->
+  <property name="scriptsdir" value="${vendordir}/NT/base-build-xml/scripts"/>
   <property name="fileexts" value="php,module,inc,install,profile,theme"/>
   <property name="fileextsexp" value="*.php,*.module,*.inc,*.install,*.profile,*.theme"/>
   <property name="phpunitxml" value="${composerdir}/phpunit-ci.xml"/>
@@ -24,10 +31,10 @@
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.example.settings.exists"/>
   <available file="${composerdir}/composer.skip" property="composer.executed"/>
-  <available file="${buildbin}/composer.phar" property="composer.phar.exists"/>
+  <available file="${composerbinfile}" property="composer.exists"/>
   <available file="${phpunitxml}" property="phpunit.xml.exists"/>
 
-  <condition property="parallel-lint" value="${buildbin}/parallel-lint.bat" else="${buildbin}/parallel-lint">
+  <condition property="parallel-lint" value="${composerbindir}/parallel-lint.bat" else="${composerbindir}/parallel-lint">
     <os family="windows"/>
   </condition>
 
@@ -118,14 +125,14 @@
   <target name="parallel-lint" description="Run PHP parallel lint">
     <exec executable="${parallel-lint}" failonerror="true">
       <arg line="--exclude"/>
-      <arg path="${buildbin}"/>
+      <arg path="${composerbindir}"/>
       <arg line="-e"/>
       <arg value="${fileexts}"/>
     </exec>
   </target>
 
  <target name="phploc" description="Measure project size using PHPLOC">
-  <exec executable="${buildbin}/phploc">
+  <exec executable="${composerbindir}/phploc">
    <arg value="--log-csv"/>
    <arg value="${builddir}/logs/phploc.csv"/>
    <arg value="--names"/>
@@ -137,7 +144,7 @@
 
  <target name="pdepend" depends="composer"
          description="Calculate software metrics using PHP_Depend" unless="pdepend.xml.present">
-  <exec executable="${buildbin}/pdepend">
+  <exec executable="${composerbindir}/pdepend">
    <arg value="-d"/>
    <arg value="memory_limit=256M"/>
    <arg value="--suffix=${fileexts}"/>
@@ -153,7 +160,7 @@
 
  <target name="phpmd" depends="composer"
          description="Perform project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
-  <exec executable="${buildbin}/phpmd">
+  <exec executable="${composerbindir}/phpmd">
    <arg value="--suffixes"/>
    <arg value="${fileexts}"/>
    <arg path="${drupalmodules}"/>
@@ -165,7 +172,7 @@
 
  <target name="phpmd-ci" depends="composer"
          description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
-  <exec executable="${buildbin}/phpmd">
+  <exec executable="${composerbindir}/phpmd">
    <arg value="--suffixes"/>
    <arg value="${fileexts}"/>
    <arg path="${drupalmodules}"/>
@@ -179,7 +186,7 @@
 
  <target name="phpcs" depends="composer,coder" if="drupal.exists"
          description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
-  <exec executable="${buildbin}/phpcs">
+  <exec executable="${composerbindir}/phpcs">
    <arg value="-d"/>
    <arg value="memory_limit=256M"/>
    <arg value="--standard=${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal"/>
@@ -192,7 +199,7 @@
 
  <target name="phpcs-ci" depends="composer,coder"
          description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
-  <exec executable="${buildbin}/phpcs">
+  <exec executable="${composerbindir}/phpcs">
    <arg value="--report=checkstyle"/>
    <arg value="--report-file=${builddir}/logs/checkstyle.xml"/>
    <arg value="--report-xml=${builddir}/logs/codesniffer.xml"/>
@@ -208,7 +215,7 @@
   <target name="phpcs-security" depends="composer"
           description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
    <symlink link="${vendordir}/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${vendordir}/pheromone/phpcs-security-audit/Security" overwrite="true"/>
-  <exec executable="${buildbin}/phpcs">
+  <exec executable="${composerbindir}/phpcs">
    <arg value="-d"/>
    <arg value="memory_limit=256M"/>
    <arg value="--standard=${vendordir}/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/>
@@ -221,7 +228,7 @@
  <target name="phpcs-security-ci" depends="composer"
           description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
     <symlink link="${vendordir}/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${vendordir}/pheromone/phpcs-security-audit/Security" overwrite="true"/>
-  <exec executable="${buildbin}/phpcs">
+  <exec executable="${composerbindir}/phpcs">
    <arg value="-d"/>
    <arg value="memory_limit=256M"/>
    <arg value="--report=checkstyle"/>
@@ -235,7 +242,7 @@
  </target>
 
  <target name="phpcpd" description="Find duplicate code using PHPCPD">
-  <exec executable="${buildbin}/phpcpd">
+  <exec executable="${composerbindir}/phpcpd">
    <arg value="--log-pmd"/>
    <arg value="${builddir}/logs/pmd-cpd.xml"/>
    <arg value="--names"/>
@@ -248,7 +255,7 @@
 
     <target name="docblox"
          description="Generate API documentation using docblox">
-        <exec executable="${buildbin}/docblox">
+        <exec executable="${composerbindir}/docblox">
             <arg value="-d"/>
             <arg value="${drupalmodules}"/>
             <arg value="-t"/>
@@ -257,8 +264,8 @@
     </target>
 
     <target name="phpunit" description="Run unit tests with PHPUnit" depends="composer" if="phpunit.xml.exists">
-        <exec executable="${buildbin}/phpunit" failonerror="true">
-    <env key="PATH" value="${buildbin}:${env.PATH}"/>
+        <exec executable="${composerbindir}/phpunit" failonerror="true">
+    <env key="PATH" value="${composerbindir}:${env.PATH}"/>
             <arg value="-d"/>
             <arg value="memory_limit=2G"/>
             <arg value="-c"/>
@@ -279,7 +286,7 @@
 
     <target name="behat-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
        <exec executable="./bin/behat" failonerror="false" dir="${composerdir}">
-          <env key="PATH" value="${env.PATH}:${buildbin}"/>
+          <env key="PATH" value="${env.PATH}:${composerbindir}"/>
          <arg value="--profile"/>
          <arg value="ci"/>
        </exec>
@@ -287,7 +294,7 @@
 
     <target name="behat-test" description="Dry Run BDD tests with Behat" depends="composer">
        <exec executable="./bin/behat" failonerror="false" dir="${composerdir}" resultproperty="BehatErrorCode">
-          <env key="PATH" value="${env.PATH}:${buildbin}"/>
+          <env key="PATH" value="${env.PATH}:${composerbindir}"/>
             <arg value="--dry-run"/>
             <arg value="--format"/>
             <arg value="progress"/>
@@ -299,12 +306,12 @@
 
     <target name="phpcov" depends="composer"
          description="Generate HTML and clover output for coverage">
-      <exec executable="${buildbin}/phpcov">
+      <exec executable="${composerbindir}/phpcov">
         <arg value="merge"/>
         <arg value="--clover=${builddir}/coverage/combined_clover.xml"/>
         <arg value="${builddir}/logs/coverage/"/>
       </exec>
-      <exec executable="${buildbin}/phpcov">
+      <exec executable="${composerbindir}/phpcov">
         <arg value="merge"/>
         <arg value="--html=${builddir}/coverage/html"/>
         <arg value="${builddir}/logs/coverage/"/>
@@ -312,43 +319,43 @@
     </target>
 
     <target name="composer" description="Run Composer"
-      depends="get-composer,composer-check,composer-install,composer-update,composer-show" unless="composer.executed">
+      depends="composer-check,composer-install,composer-update,composer-show" unless="composer.executed">
       <property name="composer.executed" value="true"/>
     </target>
 
-    <target name="get-composer" description="Get Composer" unless="composer.phar.exists">
-      <mkdir dir="${buildbin}"/>
-      <get dest="${buildbin}" skipexisting="true">
+    <target name="get-composer" description="Get Composer" unless="composer.exists">
+      <mkdir dir="${composerbindir}"/>
+      <get dest="${composerbindir}" skipexisting="true">
         <url url="https://getcomposer.org/composer.phar"/>
       </get>
-      <available file="${buildbin}/composer.phar" property="composer.phar.exists"/>
+      <available file="${composerbinfile}" property="composer.exists"/>
     </target>
 
-    <target name="composer-check" description="Check Composer">
+    <target name="composer-check" description="Check Composer" depends="get-composer">
       <exec executable="php" failonerror="true" dir="${composerdir}">
-        <arg value="${buildbin}/composer.phar"/>
+        <arg value="${composerbinfile}"/>
         <arg value="self-update"/>
       </exec>
       <available file="${composerdir}/composer.lock" property="composer.lock.exists"/>
     </target>
 
-    <target name="composer-install" description="Run Composer install" unless="composer.lock.exists">
+    <target name="composer-install" description="Run Composer install" depends="get-composer" unless="composer.lock.exists">
       <exec executable="php" failonerror="true" dir="${composerdir}">
-        <arg value="${buildbin}/composer.phar"/>
+        <arg value="${composerbinfile}"/>
         <arg value="install"/>
       </exec>
     </target>
 
-    <target name="composer-update" description="Run Composer update" if="composer.lock.exists">
+    <target name="composer-update" description="Run Composer update" depends="get-composer" if="composer.lock.exists">
       <exec executable="php" failonerror="true" dir="${composerdir}">
-        <arg value="${buildbin}/composer.phar"/>
+        <arg value="${composerbinfile}"/>
         <arg value="update"/>
       </exec>
     </target>
 
-    <target name="composer-show" description="Run Composer show" if="composer.lock.exists">
+    <target name="composer-show" description="Run Composer show" depends="get-composer" if="composer.lock.exists">
       <exec executable="php" failonerror="true" dir="${composerdir}" outputproperty="output">
-        <arg value="${buildbin}/composer.phar"/>
+        <arg value="${composerbinfile}"/>
         <arg value="show"/>
       </exec>
       <echo message="${output}"/>
@@ -356,7 +363,7 @@
 
  <target name="phpcb" depends="composer"
          description="Aggregate tool output with PHP_CodeBrowser">
-  <exec executable="${buildbin}/phpcb">
+  <exec executable="${composerbindir}/phpcb">
    <arg value="--log"/>
    <arg path="${builddir}/logs"/>
    <arg value="--source"/>
@@ -367,7 +374,7 @@
  </target>
 
   <target name="coder" depends="composer" description="Drush to install Coder module" if="drupal.exists">
-    <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
+    <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="dl"/>
       <arg value="coder-8.x-2.3"/>
@@ -377,7 +384,7 @@
   </target>
   <target name="enable-bdd-code-coverage" depends="composer"
     description="Drush to enable code_coverage module to allow its capture during BDD tests">
-    <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
+    <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="en"/>
       <arg value="code_coverage"/>
@@ -423,11 +430,11 @@
   <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
     <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${composerdir}/includes/ntdp_drupal.sql">
         <arg value="-c"/>
-        <arg value="`${buildbin}/drush sql-connect`"/>
+        <arg value="`${composerbindir}/drush sql-connect`"/>
     </exec>
   </target>
   <target name="drop-database" description="Clean the database" >
-    <exec executable="${buildbin}/drush" failonerror="true" dir="${basedir}/${drupalroot}">
+    <exec executable="${composerbindir}/drush" failonerror="true" dir="${basedir}/${drupalroot}">
         <arg value="sql-drop"/>
         <arg value="--yes"/>
     </exec>
@@ -462,19 +469,19 @@
       <arg line="${converted}"/>
     </exec>
     <copy file="${builddir}/logs/junit.xml" todir="${builddir}/logs/junit" failonerror="false"/>
-    <exec executable="${buildbin}/phpjunitmerge" failonerror="false" >
+    <exec executable="${composerbindir}/phpjunitmerge" failonerror="false" >
       <arg value="${builddir}/logs/junit"/>
       <arg value="${builddir}/logs/combined_junit.xml"/>
     </exec>
   </target>
 
    <target name="drush-composer" description="Drush to install composer dependencies" depends="composer,setup-database">
-    <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
+    <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="en"/>
       <arg value="composer_manager"/>
     </exec>
-    <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
+    <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="composer-json-rebuild"/>
       <arg value="--no-dev"/>
       <arg value="-o"/>
@@ -482,7 +489,7 @@
     <exec executable="php" dir="${composerdir}">
       <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupalroot}/sites/all/libraries/composer"/>
       <env key="COMPOSER" value="${basedir}/${drupalroot}/sites/${drupalsite}/files/composer/composer.json"/>
-      <arg value="${buildbin}/composer.phar"/>
+      <arg value="${composerbinfile}"/>
       <arg value="update"/>
       <arg value="--no-dev"/>
       <arg value="--prefer-source"/>
@@ -491,7 +498,7 @@
     <exec executable="php" dir="${composerdir}">
       <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupalroot}/sites/all/libraries/composer"/>
       <env key="COMPOSER" value="${basedir}/${drupalroot}/sites/${drupalsite}/files/composer/composer.json"/>
-      <arg value="${buildbin}/composer.phar"/>
+      <arg value="${composerbinfile}"/>
       <arg value="dump-autoload"/>
     </exec>
   </target>

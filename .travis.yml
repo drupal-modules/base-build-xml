@@ -17,10 +17,8 @@ env:
 before_install:
   - mkdir -v tests
 install:
-  - curl -so tests/composer.phar https://getcomposer.org/composer.phar
-  - php tests/composer.phar -d=tests require drush/drush
-  - $DRUSH qd --yes --no-server --root=docroot/
+  - # $DRUSH qd --yes --no-server --root=docroot/ # @fixme
 script:
-  - ant -f base.xml composer-check
+  - ant -f base.xml composer
 after_script:
   - ant -f base.xml composer-show
