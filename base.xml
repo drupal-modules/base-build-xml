@@ -336,7 +336,6 @@
         <arg value="${composerbinfile}"/>
         <arg value="self-update"/>
       </exec>
-      <available file="${composerdir}/composer.lock" property="composer.lock.exists"/>
     </target>
 
     <target name="composer-install" description="Run Composer install" depends="get-composer" unless="composer.lock.exists">
@@ -344,8 +343,8 @@
         <arg value="${composerbinfile}"/>
         <arg value="install"/>
         <arg value="--prefer-dist"/>
-        <arg value="--verbose"/>
       </exec>
+      <available file="${composerdir}/composer.lock" property="composer.lock.exists"/>
     </target>
 
     <target name="composer-update" description="Run Composer update" depends="get-composer" if="composer.lock.exists">
@@ -354,6 +353,7 @@
         <arg value="update"/>
         <arg value="--prefer-dist"/>
       </exec>
+      <available file="${composerdir}/composer.lock" property="composer.lock.exists"/>
     </target>
 
     <target name="composer-show" description="Run Composer show" depends="get-composer" if="composer.lock.exists">
