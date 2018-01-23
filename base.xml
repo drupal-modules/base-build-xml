@@ -4,12 +4,16 @@
   <property environment="env"/>
   <property name="project" value="base-build-xml"/>
   <property name="drupalroot" value="docroot"/>
-  <!-- Path to Drupal themes. -->
-  <property name="drupalthemes" value="${builddir}/${drupalroot}/sites/all/themes"/>
-  <!-- Path to Drupal modules. -->
-  <property name="drupalmodules" value="${builddir}/${drupalroot}/sites/all/modules"/>
   <property name="drupalsite" value="default"/>
+  <!-- Path to Drupal themes. -->
+  <property name="drupalthemes" value="${drupalroot}/sites/all/themes"/>
+  <!-- Path to Drupal modules. -->
+  <property name="drupalmodules" value="${drupalroot}/sites/all/modules"/>
+  <!-- Path to Drupal libraries. -->
+  <property name="drupallibraries" value="${drupalroot}/sites/all/libraries"/>
   <property name="drushurl" value=""/>
+  <!-- Path to Drupal db file to import. -->
+  <property name="drupaldbfile" value=""/>
   <!-- Define Composer's main directory (location of composer.json file). -->
   <property name="composerdir" value="${basedir}"/>
   <!-- Define Composer's bin-dir. -->
@@ -35,6 +39,7 @@
   <available file="${composerdir}/composer.skip" property="composer.executed"/>
   <available file="${composerbinfile}" property="composer.exists"/>
   <available file="${phpunitxml}" property="phpunit.xml.exists"/>
+  <available file="${drupaldbfile}" property="drupaldbfile.exists"/>
   <condition property="parallel-lint" value="${composerbindir}/parallel-lint.bat" else="${composerbindir}/parallel-lint">
     <os family="windows"/>
   </condition>
@@ -73,7 +78,7 @@
     <mkdir dir="${builddir}/pdepend"/>
     <mkdir dir="${builddir}/phpdox"/>
   </target>
-  <target name="lint" depends="prepare" if="drupal.exists">
+  <target name="lint" depends="prepare,setup-drupal" if="drupal.exists">
     <apply executable="php" failonerror="true">
       <arg value="-l"/>
       <fileset dir="${basedir}/${drupalroot}">
@@ -346,8 +351,15 @@
       <arg value="-c"/>
       <arg value="echo drupal-7*"/>
     </exec>
-    <symlink link="${basedir}/${drupalroot}" resource="${basedir}/${drupalroot}/../${drupaldir}" overwrite="true"/>
+    <symlink link="${basedir}/${drupalroot}" resource="${drupaldir}" overwrite="true"/>
     <available file="${basedir}/${drupalroot}/index.php" property="drupal.exists"/>
+  </target>
+  <target name="install-drupal" description="Install Drupal" depends="composer,drupalcore,configure-database,drop-database">
+    <!-- @todo
+    <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}/..">
+      <arg value="site-install"/>
+    </exec>
+    -->
   </target>
   <target name="coder" description="Drush to install Coder module" depends="setup-drupal">
     <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
@@ -388,7 +400,7 @@
     <exec executable="${scriptsdir}/stop_web.sh" dir="${scriptsdir}" spawn="true">
         </exec>
   </target>
-  <target name="configure-database" description="Configure settings.local.php file" unless="settings.local.php.exists">
+  <target name="configure-database" description="Configure settings.local.php file" if="settings.local.php.exists">
     <copy file="${basedir}/${drupalroot}/sites/default/example.settings.local.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.php" overwrite="yes"/>
     <exec executable="ex" failonerror="true" dir="${basedir}/${drupalroot}">
       <arg value="${basedir}/${drupalroot}/sites/default/settings.local.php"/>
@@ -405,13 +417,24 @@
       <arg value="status"/>
     </exec>
   </target>
-  <target name="setup-database" description="Import the database" depends="composer,drupalcore,configure-database">
-    <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${composerdir}/includes/ntdp_drupal.sql">
+  <target name="setup-database" description="Setup the database" depends="import-database">
+    <if>
+      <isset property="drupaldbfile.exists"/>
+      <then>
+        <antcall target="import-database"/>
+      </then>
+      <else>
+        <antcall target="install-drupal"/>
+      </else>
+    </if>
+  </target>
+  <target name="import-database" description="Import the database" depends="composer,drupalcore,configure-database,drop-database" if="drupaldbfile.exists">
+    <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${drupaldbfile}">
       <arg value="-c"/>
       <arg value="`${composerbindir}/drush sql-connect`"/>
     </exec>
   </target>
-  <target name="drop-database" description="Clean the database">
+  <target name="drop-database" description="Clean the database" if="drupal.settings.exists">
     <exec executable="${composerbindir}/drush" failonerror="true" dir="${basedir}/${drupalroot}">
       <arg value="sql-drop"/>
       <arg value="--yes"/>
@@ -464,7 +487,7 @@
       <arg value="-o"/>
     </exec>
     <exec executable="php" dir="${composerdir}">
-      <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupalroot}/sites/all/libraries/composer"/>
+      <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupallibraries}/composer"/>
       <env key="COMPOSER" value="${basedir}/${drupalroot}/sites/${drupalsite}/files/composer/composer.json"/>
       <arg value="${composerbinfile}"/>
       <arg value="update"/>
@@ -473,7 +496,7 @@
       <arg value="-o"/>
     </exec>
     <exec executable="php" dir="${composerdir}">
-      <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupalroot}/sites/all/libraries/composer"/>
+      <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupallibraries}/composer"/>
       <env key="COMPOSER" value="${basedir}/${drupalroot}/sites/${drupalsite}/files/composer/composer.json"/>
       <arg value="${composerbinfile}"/>
       <arg value="dump-autoload"/>
