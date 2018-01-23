@@ -121,12 +121,31 @@
     </apply>
   </target>
   <target name="parallel-lint" description="Run PHP parallel lint">
-    <exec executable="${parallel-lint}" failonerror="true">
-      <arg line="--exclude"/>
-      <arg path="${composerbindir}"/>
+    <apply executable="${parallel-lint}" dir="${basedir}" failonerror="true">
       <arg line="-e"/>
       <arg value="${fileexts}"/>
-    </exec>
+      <fileset dir="${drupalroot}">
+        <include name="**/*.php"/>
+        <include name="**/*.inc"/>
+        <include name="**/*.module"/>
+        <include name="**/*.install"/>
+        <include name="**/*.profile"/>
+        <include name="**/*.theme"/>
+        <!-- Excludes any vendor dirs within Drupal root. -->
+        <exclude name="**/vendor/**"/>
+        <!-- Excludes coder_sniffer dir. -->
+        <exclude name="**/coder_sniffer/Drupal/Test/**/*.php"/>
+        <!-- @see: https://github.com/symfony/symfony/issues/11921 -->
+        <exclude name="sites/all/libraries/**/Tests/**/*.php"/>
+        <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
+        <exclude name="sites/all/libraries/**/Resources/**/*.php"/>
+        <modified>
+          <param name="cache.cachefile" value="${builddir}/cache/${project}.lint.drupalroot.properties"/>
+        </modified>
+      </fileset>
+      <!--<arg path="${drupalroot}"/>-->
+      <!--<arg path="${composerdir}"/>-->
+    </apply>
   </target>
   <target name="phploc" description="Measure project size using PHPLOC">
     <exec executable="${composerbindir}/phploc">
