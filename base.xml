@@ -3,7 +3,7 @@
   <!-- Sets the default properties. Override in your build file when needed. -->
   <property environment="env"/>
   <property name="project" value="base-build-xml"/>
-  <property name="drupalroot" value=""/>
+  <property name="drupalroot" value="."/>
   <property name="drupalthemes" value="."/> <!-- E.g. ${basedir}/${drupalroot}/sites/all/themes -->
   <property name="drupalmodules" value="."/> <!-- E.g. ${basedir}/${drupalroot}/sites/all/modules/custom -->
   <property name="pdependarg" value="--quiet"/>
@@ -12,8 +12,8 @@
   <property name="composersite" value="all"/>
   <property name="composerdir" value="${basedir}/tests"/>    <!-- Composer's main directory (location of composer.json). -->
   <property name="vendordir" value="${composerdir}/vendor"/> <!-- Composer's vendor dir. -->
-  <property name="buildbin" value="${composerdir}/bin"/>    <!-- Composer's bin-dir. -->
-  <property name="builddir" value="${builddir}"/>       <!-- Build dir for result files. -->
+  <property name="buildbin" value="${composerdir}/bin"/>     <!-- Composer's bin-dir. -->
+  <property name="builddir" value="${composerdir}/build"/>   <!-- Build dir for result files. -->
   <property name="fileexts" value="php,module,inc,install,profile,theme"/>
   <property name="fileextsexp" value="*.php,*.module,*.inc,*.install,*.profile,*.theme"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
@@ -41,11 +41,11 @@
  <target name="clean" description="Cleanup build artifacts">
     <delete dir="${builddir}/api"/>
     <delete dir="${builddir}/behat"/>
+    <delete dir="${builddir}/cache"/>
     <delete dir="${builddir}/code-browser"/>
     <delete dir="${builddir}/coverage"/>
     <delete dir="${builddir}/logs"/>
     <delete dir="${builddir}/pdepend"/>
-    <delete dir="${builddir}/cache"/>
     <delete file="${composerdir}/composer.lock"/>
     <delete file="${composerdir}/composer.skip"/>
  </target>
@@ -54,6 +54,7 @@
          description="Prepare for build">
     <mkdir dir="${builddir}/api"/>
     <mkdir dir="${builddir}/behat"/>
+    <mkdir dir="${builddir}/cache"/>
     <mkdir dir="${builddir}/code-browser"/>
     <mkdir dir="${builddir}/coverage"/>
     <mkdir dir="${builddir}/logs"/>
@@ -61,10 +62,9 @@
     <mkdir dir="${builddir}/logs/junit"/>
     <mkdir dir="${builddir}/pdepend"/>
     <mkdir dir="${builddir}/phpdox"/>
-    <mkdir dir="${builddir}/cache"/>
  </target>
 
- <target name="lint">
+ <target name="lint" depends="prepare">
   <apply executable="php" failonerror="true">
    <arg value="-l"/>
 
@@ -75,27 +75,29 @@
     <include name="**/*.install"/>
     <include name="**/*.profile"/>
     <include name="**/*.theme"/>
-    <!-- @see: http://cgit.drupalcode.org/coder/tree/coder_sniffer/Drupal/Test/bad -->
-    <exclude name="coder/**/Test/**/*.php"/>
     <!-- @see: https://github.com/symfony/symfony/issues/11921 -->
     <exclude name="sites/all/libraries/**/Tests/**/*.php"/>
     <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
     <exclude name="sites/all/libraries/**/Resources/**/*.php"/>
-    <exclude name="${vendordir}/**/Resources/**/*.php"/>
-    <!-- E.g. vendor/jakub-onderka/php-parallel-lint/tests/examples -->
-    <exclude name="${vendordir}/**/examples/**/*.php"/>
-    <!-- E.g. vendor/pdepend/pdepend/src/test/resources/files -->
-    <exclude name="${vendordir}/**/resources/**/*.php"/>
     <modified>
-      <param name="cache.cachefile" value="${builddir}/cache/${project}.properties"/>
+      <param name="cache.cachefile" value="${builddir}/cache/${project}.lint.drupalroot.properties"/>
     </modified>
    </fileset>
 
    <fileset dir="${composerdir}">
     <include name="**/*.php"/>
+    <!-- @see: http://cgit.drupalcode.org/coder/tree/coder_sniffer/Drupal/Test/bad -->
+    <exclude name="coder/**/Test/**/*.php"/>
+    <!-- Ignores all PHP files found in vendor dir. -->
     <exclude name="vendor/**/*.php"/>
+    <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
+    <exclude name="vendor/**/Resources/**/*.php"/>
+    <!-- E.g. vendor/jakub-onderka/php-parallel-lint/tests/examples -->
+    <exclude name="vendor/**/examples/**/*.php"/>
+    <!-- E.g. vendor/pdepend/pdepend/src/test/resources/files -->
+    <exclude name="vendor/**/resources/**/*.php"/>
     <modified>
-      <param name="cache.cachefile" value="${builddir}/cache/${project}.tests.properties"/>
+      <param name="cache.cachefile" value="${builddir}/cache/${project}.lint.composerdir.properties"/>
     </modified>
    </fileset>
   </apply>
