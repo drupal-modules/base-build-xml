@@ -2,6 +2,7 @@
 <project>
   <!-- Sets the default properties. Override in your build file when needed. -->
   <property environment="env"/>
+  <property name="project" value="base-build-xml"/>
   <property name="drupalroot" value=""/>
   <property name="drupalthemes" value="."/> <!-- E.g. ${basedir}/${drupalroot}/sites/all/themes -->
   <property name="drupalmodules" value="."/> <!-- E.g. ${basedir}/${drupalroot}/sites/all/modules/custom -->
