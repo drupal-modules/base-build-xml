@@ -12,8 +12,8 @@
   <!-- Path to Drupal libraries. -->
   <property name="drupallibraries" value="${drupalroot}/sites/all/libraries"/>
   <property name="drushurl" value=""/>
-  <!-- Path to Drupal db file to import. -->
-  <property name="drupaldbfile" value=""/>
+  <!-- Path to existing Drupal's db file to import. -->
+  <property name="drupaldbfile" value="drupal.sql"/>
   <!-- Define Composer's main directory (location of composer.json file). -->
   <property name="composerdir" value="${basedir}"/>
   <!-- Define Composer's bin-dir. -->
@@ -354,7 +354,7 @@
     <symlink link="${basedir}/${drupalroot}" resource="${drupaldir}" overwrite="true"/>
     <available file="${basedir}/${drupalroot}/index.php" property="drupal.exists"/>
   </target>
-  <target name="install-drupal" description="Install Drupal" depends="composer,drupalcore,configure-database,drop-database">
+  <target name="install-drupal" description="Install Drupal" depends="composer,drupalcore,configure-database,drop-database" unless="drupaldbfile.exists">
     <!-- @todo
     <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}/..">
       <arg value="site-install"/>
@@ -417,18 +417,9 @@
       <arg value="status"/>
     </exec>
   </target>
-  <target name="setup-database" description="Setup the database" depends="import-database">
-    <if>
-      <isset property="drupaldbfile.exists"/>
-      <then>
-        <antcall target="import-database"/>
-      </then>
-      <else>
-        <antcall target="install-drupal"/>
-      </else>
-    </if>
+  <target name="setup-database" description="Setup the database" if="drupal.exists" depends="import-database,install-drupal">
   </target>
-  <target name="import-database" description="Import the database" depends="composer,drupalcore,configure-database,drop-database" if="drupaldbfile.exists">
+  <target name="import-database" description="Import the database" if="drupaldbfile.exists" depends="composer,drupalcore,configure-database,drop-database">
     <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${drupaldbfile}">
       <arg value="-c"/>
       <arg value="`${composerbindir}/drush sql-connect`"/>
