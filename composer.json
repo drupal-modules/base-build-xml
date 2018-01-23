@@ -18,7 +18,7 @@
     "phpunit/php-token-stream":        ">=1.3.0@stable",
     "phpunit/phpcov":                  "2.*@stable",
     "phpunit/phpunit":                 ">=3.7.1@stable",
-    "sebastian/phpcpd":                ">=2.0.1@stable",
+    "sebastian/phpcpd":                "3.*@stable",
     "squizlabs/php_codesniffer":       "2.*@stable",
     "vipsoft/code-coverage-extension": "2.*@dev"
   },
