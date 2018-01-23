@@ -10,9 +10,10 @@
   <property name="drupalsite" value="default"/>
   <property name="drushurl" value=""/>
   <property name="composersite" value="all"/>
-  <property name="composerdir" value="${basedir}/tests"/>
-  <property name="vendordir" value="${composerdir}/vendor"/>
-  <property name="buildbin" value="${composerdir}/bin" />
+  <property name="composerdir" value="${basedir}/tests"/>    <!-- Composer's main directory (location of composer.json). -->
+  <property name="vendordir" value="${composerdir}/vendor"/> <!-- Composer's vendor dir. -->
+  <property name="buildbin" value="${composerdir}/bin"/>    <!-- Composer's bin-dir. -->
+  <property name="builddir" value="${builddir}"/>       <!-- Build dir for result files. -->
   <property name="fileexts" value="php,module,inc,install,profile,theme"/>
   <property name="fileextsexp" value="*.php,*.module,*.inc,*.install,*.profile,*.theme"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
@@ -38,61 +39,63 @@
   </target>
 
  <target name="clean" description="Cleanup build artifacts">
-    <delete dir="${basedir}/build/api"/>
-    <delete dir="${basedir}/build/code-browser"/>
-    <delete dir="${basedir}/build/coverage"/>
-    <delete dir="${basedir}/build/logs"/>
-    <delete dir="${basedir}/build/pdepend"/>
-    <delete dir="${basedir}/build/behat"/>
-    <delete file="${composerdir}/composer.skip"/>
+    <delete dir="${builddir}/api"/>
+    <delete dir="${builddir}/behat"/>
+    <delete dir="${builddir}/code-browser"/>
+    <delete dir="${builddir}/coverage"/>
+    <delete dir="${builddir}/logs"/>
+    <delete dir="${builddir}/pdepend"/>
+    <delete dir="${builddir}/cache"/>
     <delete file="${composerdir}/composer.lock"/>
+    <delete file="${composerdir}/composer.skip"/>
  </target>
 
  <target name="prepare" depends="clean,composer,coder"
          description="Prepare for build">
-    <mkdir dir="${basedir}/build/api"/>
-    <mkdir dir="${basedir}/build/code-browser"/>
-    <mkdir dir="${basedir}/build/coverage"/>
-    <mkdir dir="${basedir}/build/logs"/>
-    <mkdir dir="${basedir}/build/logs/coverage"/>
-    <mkdir dir="${basedir}/build/logs/junit"/>
-    <mkdir dir="${basedir}/build/pdepend"/>
-    <mkdir dir="${basedir}/build/phpdox"/>
-    <mkdir dir="${basedir}/build/behat"/>
+    <mkdir dir="${builddir}/api"/>
+    <mkdir dir="${builddir}/behat"/>
+    <mkdir dir="${builddir}/code-browser"/>
+    <mkdir dir="${builddir}/coverage"/>
+    <mkdir dir="${builddir}/logs"/>
+    <mkdir dir="${builddir}/logs/coverage"/>
+    <mkdir dir="${builddir}/logs/junit"/>
+    <mkdir dir="${builddir}/pdepend"/>
+    <mkdir dir="${builddir}/phpdox"/>
+    <mkdir dir="${builddir}/cache"/>
  </target>
 
  <target name="lint">
   <apply executable="php" failonerror="true">
-   <arg value="-l" />
+   <arg value="-l"/>
 
    <fileset dir="${basedir}/${drupalroot}">
-    <include name="**/*.php" />
-    <include name="**/*.inc" />
-    <include name="**/*.module" />
-    <include name="**/*.install" />
-    <include name="**/*.profile" />
-    <include name="**/*.theme" />
+    <include name="**/*.php"/>
+    <include name="**/*.inc"/>
+    <include name="**/*.module"/>
+    <include name="**/*.install"/>
+    <include name="**/*.profile"/>
+    <include name="**/*.theme"/>
     <!-- @see: http://cgit.drupalcode.org/coder/tree/coder_sniffer/Drupal/Test/bad -->
-    <exclude name="coder/**/Test/**/*.php" />
+    <exclude name="coder/**/Test/**/*.php"/>
     <!-- @see: https://github.com/symfony/symfony/issues/11921 -->
-    <exclude name="sites/all/libraries/**/Tests/**/*.php" />
+    <exclude name="sites/all/libraries/**/Tests/**/*.php"/>
     <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
-    <exclude name="sites/all/libraries/**/Resources/**/*.php" />
-    <exclude name="${vendordir}/**/Resources/**/*.php" />
+    <exclude name="sites/all/libraries/**/Resources/**/*.php"/>
+    <exclude name="${vendordir}/**/Resources/**/*.php"/>
     <!-- E.g. vendor/jakub-onderka/php-parallel-lint/tests/examples -->
-    <exclude name="${vendordir}/**/examples/**/*.php" />
+    <exclude name="${vendordir}/**/examples/**/*.php"/>
     <!-- E.g. vendor/pdepend/pdepend/src/test/resources/files -->
-    <exclude name="${vendordir}/**/resources/**/*.php" />
+    <exclude name="${vendordir}/**/resources/**/*.php"/>
     <modified>
-      <param name="cache.cachefile" value="../cache.properties.${project}"/>
+      <param name="cache.cachefile" value="${builddir}/cache/${project}.properties"/>
     </modified>
    </fileset>
 
    <fileset dir="${composerdir}">
-    <include name="**/*.php" />
-    <exclude name="vendor/**/*.php" />
+    <include name="**/*.php"/>
+    <exclude name="vendor/**/*.php"/>
     <modified>
-      <param name="cache.cachefile" value="../cache.properties.${project}.tests"/>
+      <param name="cache.cachefile" value="${builddir}/cache/${project}.tests.properties"/>
     </modified>
    </fileset>
   </apply>
@@ -100,20 +103,20 @@
 
   <target name="parallel-lint" description="Run PHP parallel lint">
     <exec executable="${parallel-lint}" failonerror="true">
-      <arg line="--exclude" />
+      <arg line="--exclude"/>
       <arg path="${buildbin}"/>
-      <arg line="-e" />
+      <arg line="-e"/>
       <arg value="${fileexts}"/>
     </exec>
   </target>
 
  <target name="phploc" description="Measure project size using PHPLOC">
   <exec executable="${buildbin}/phploc">
-   <arg value="--log-csv" />
-   <arg value="${basedir}/build/logs/phploc.csv" />
-   <arg value="--names" />
-   <arg value="${fileextsexp}" />
-   <arg path="${drupalmodules}" />
+   <arg value="--log-csv"/>
+   <arg value="${builddir}/logs/phploc.csv"/>
+   <arg value="--names"/>
+   <arg value="${fileextsexp}"/>
+   <arg path="${drupalmodules}"/>
    <arg path="${drupalthemes}"/>
   </exec>
  </target>
@@ -121,54 +124,54 @@
  <target name="pdepend" depends="composer"
          description="Calculate software metrics using PHP_Depend" unless="pdepend.xml.present">
   <exec executable="${buildbin}/pdepend">
-   <arg value="-d" />
-   <arg value="memory_limit=256M" />
-   <arg value="--suffix=${fileexts}" />
-   <arg value="--jdepend-xml=${basedir}/build/logs/jdepend.xml" />
-   <arg value="--jdepend-chart=${basedir}/build/pdepend/dependencies.svg" />
-   <arg value="--overview-pyramid=${basedir}/build/pdepend/overview-pyramid.svg" />
-   <arg value="--summary-xml=${basedir}/build/logs/pdepend.xml" />
-   <arg value="${pdependarg}" />
-   <arg path="${drupalmodules}" />
+   <arg value="-d"/>
+   <arg value="memory_limit=256M"/>
+   <arg value="--suffix=${fileexts}"/>
+   <arg value="--jdepend-xml=${builddir}/logs/jdepend.xml"/>
+   <arg value="--jdepend-chart=${builddir}/pdepend/dependencies.svg"/>
+   <arg value="--overview-pyramid=${builddir}/pdepend/overview-pyramid.svg"/>
+   <arg value="--summary-xml=${builddir}/logs/pdepend.xml"/>
+   <arg value="${pdependarg}"/>
+   <arg path="${drupalmodules}"/>
   </exec>
-  <available file="${basedir}/build/logs/pdepend.xml" property="pdepend.xml.present"/>
+  <available file="${builddir}/logs/pdepend.xml" property="pdepend.xml.present"/>
  </target>
 
  <target name="phpmd" depends="composer"
          description="Perform project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
   <exec executable="${buildbin}/phpmd">
-   <arg value="--suffixes" />
-   <arg value="${fileexts}" />
-   <arg path="${drupalmodules}" />
-   <arg value="text" />
-   <!--<arg value="${basedir}/build/phpmd.xml" />-->
-   <arg value="codesize,unusedcode,naming" />
+   <arg value="--suffixes"/>
+   <arg value="${fileexts}"/>
+   <arg path="${drupalmodules}"/>
+   <arg value="text"/>
+   <!--<arg value="${builddir}/phpmd.xml"/>-->
+   <arg value="codesize,unusedcode,naming"/>
   </exec>
  </target>
 
  <target name="phpmd-ci" depends="composer"
          description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
   <exec executable="${buildbin}/phpmd">
-   <arg value="--suffixes" />
-   <arg value="${fileexts}" />
-   <arg path="${drupalmodules}" />
-   <arg value="xml" />
-   <arg value="codesize,unusedcode,naming" />
-   <!--<arg value="${basedir}/build/phpmd.xml" />-->
-   <arg value="--reportfile" />
-   <arg value="${basedir}/build/logs/pmd.xml" />
+   <arg value="--suffixes"/>
+   <arg value="${fileexts}"/>
+   <arg path="${drupalmodules}"/>
+   <arg value="xml"/>
+   <arg value="codesize,unusedcode,naming"/>
+   <!--<arg value="${builddir}/phpmd.xml"/>-->
+   <arg value="--reportfile"/>
+   <arg value="${builddir}/logs/pmd.xml"/>
   </exec>
  </target>
 
  <target name="phpcs" depends="composer,coder"
          description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
   <exec executable="${buildbin}/phpcs">
-   <arg value="-d" />
-   <arg value="memory_limit=256M" />
-   <arg value="--standard=${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal" />
-   <arg value="--extensions=${fileexts}" />
+   <arg value="-d"/>
+   <arg value="memory_limit=256M"/>
+   <arg value="--standard=${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal"/>
+   <arg value="--extensions=${fileexts}"/>
    <!-- ignore test for now -->
-   <arg path="${drupalmodules}" />
+   <arg path="${drupalmodules}"/>
    <arg path="${drupalthemes}"/>
   </exec>
  </target>
@@ -176,14 +179,14 @@
  <target name="phpcs-ci" depends="composer,coder"
          description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
   <exec executable="${buildbin}/phpcs">
-   <arg value="--report=checkstyle" />
-   <arg value="--report-file=${basedir}/build/logs/checkstyle.xml" />
-   <arg value="--report-xml=${basedir}/build/logs/codesniffer.xml" />
-   <arg value="-d" />
-   <arg value="memory_limit=256M" />
+   <arg value="--report=checkstyle"/>
+   <arg value="--report-file=${builddir}/logs/checkstyle.xml"/>
+   <arg value="--report-xml=${builddir}/logs/codesniffer.xml"/>
+   <arg value="-d"/>
+   <arg value="memory_limit=256M"/>
    <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/> <!--or: ${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal-->
-   <arg value="--extensions=${fileexts}" />
-   <arg path="${drupalmodules}" />
+   <arg value="--extensions=${fileexts}"/>
+   <arg path="${drupalmodules}"/>
    <arg path="${drupalthemes}"/>
   </exec>
  </target>
@@ -192,63 +195,63 @@
           description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
    <symlink link="${composerdir}/vendor/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${basedir}/tests/vendor/pheromone/phpcs-security-audit/Security" overwrite="true"/>
   <exec executable="${buildbin}/phpcs">
-   <arg value="-d" />
-   <arg value="memory_limit=256M" />
-   <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml" />
+   <arg value="-d"/>
+   <arg value="memory_limit=256M"/>
+   <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/>
    <arg value="--extensions={fileexts}"/>
-   <arg path="${drupalmodules}" />
+   <arg path="${drupalmodules}"/>
    <arg path="${drupalthemes}"/>
   </exec>
  </target>
 
  <target name="phpcs-security-ci" depends="composer"
           description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
-    <symlink link="${composerdir}/vendor/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${basedir}/tests/vendor/pheromone/phpcs-security-audit/Security" overwrite="true" />
+    <symlink link="${composerdir}/vendor/squizlabs/php_codesniffer/CodeSniffer/Standards/Security" resource="${basedir}/tests/vendor/pheromone/phpcs-security-audit/Security" overwrite="true"/>
   <exec executable="${buildbin}/phpcs">
-   <arg value="-d" />
-   <arg value="memory_limit=256M" />
-   <arg value="--report=checkstyle" />
-   <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml" />
+   <arg value="-d"/>
+   <arg value="memory_limit=256M"/>
+   <arg value="--report=checkstyle"/>
+   <arg value="--standard=${composerdir}/vendor/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/>
    <arg value="--extensions=${fileexts}"/>
-   <arg value="--report-file=${basedir}/build/logs/checkstyle-security.xml" />
-   <arg value="--report-xml=${basedir}/build/logs/codesniffer-security.xml" />
-   <arg path="${drupalmodules}" />
+   <arg value="--report-file=${builddir}/logs/checkstyle-security.xml"/>
+   <arg value="--report-xml=${builddir}/logs/codesniffer-security.xml"/>
+   <arg path="${drupalmodules}"/>
    <arg path="${drupalthemes}"/>
   </exec>
  </target>
 
  <target name="phpcpd" description="Find duplicate code using PHPCPD">
   <exec executable="${buildbin}/phpcpd">
-   <arg value="--log-pmd" />
-   <arg value="${basedir}/build/logs/pmd-cpd.xml" />
-   <arg value="--names" />
-   <arg value="${fileextsexp}" />
-   <arg value="--exclude" />
-   <arg value="${vendordir}" />
-   <arg path="${drupalmodules}" />
+   <arg value="--log-pmd"/>
+   <arg value="${builddir}/logs/pmd-cpd.xml"/>
+   <arg value="--names"/>
+   <arg value="${fileextsexp}"/>
+   <arg value="--exclude"/>
+   <arg value="${vendordir}"/>
+   <arg path="${drupalmodules}"/>
   </exec>
  </target>
 
     <target name="docblox"
          description="Generate API documentation using docblox">
         <exec executable="${buildbin}/docblox">
-            <arg value="-d" />
-            <arg value="${drupalmodules}" />
-            <arg value="-t" />
-            <arg value="${basedir}/build/phpdox" />
+            <arg value="-d"/>
+            <arg value="${drupalmodules}"/>
+            <arg value="-t"/>
+            <arg value="${builddir}/phpdox"/>
         </exec>
     </target>
 
     <target name="phpunit" description="Run unit tests with PHPUnit" depends="composer">
         <exec executable="${buildbin}/phpunit" failonerror="true">
     <env key="PATH" value="${buildbin}:${env.PATH}"/>
-            <arg value="-d" />
-            <arg value="memory_limit=2G" />
-            <arg value="-c" />
-            <arg value="${composerdir}/phpunit-ci.xml" />
-            <arg value="--testsuite" />
-            <arg value="All Code" />
-      <arg path="${drupalmodules}" />
+            <arg value="-d"/>
+            <arg value="memory_limit=2G"/>
+            <arg value="-c"/>
+            <arg value="${composerdir}/phpunit-ci.xml"/>
+            <arg value="--testsuite"/>
+            <arg value="All Code"/>
+      <arg path="${drupalmodules}"/>
         </exec>
     </target>
 
@@ -257,114 +260,114 @@
       <antcall target="php-webserver-stop"/>
       <antcall target="phantomjs-stop"/>
       <antcall target="drop-database"/>
-      <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files" />
+      <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files"/>
     </target>
 
     <target name="behat-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
        <exec executable="./bin/behat" failonerror="false" dir="${composerdir}">
           <env key="PATH" value="${env.PATH}:${buildbin}"/>
-         <arg value="--profile" />
-         <arg value="ci" />
+         <arg value="--profile"/>
+         <arg value="ci"/>
        </exec>
     </target>
 
     <target name="behat-test" description="Dry Run BDD tests with Behat" depends="composer">
        <exec executable="./bin/behat" failonerror="false" dir="${composerdir}" resultproperty="BehatErrorCode">
           <env key="PATH" value="${env.PATH}:${buildbin}"/>
-            <arg value="--dry-run" />
-            <arg value="--format" />
-            <arg value="progress" />
+            <arg value="--dry-run"/>
+            <arg value="--format"/>
+            <arg value="progress"/>
        </exec>
        <condition property="BehatDryRun">
-   <equals arg1="${BehatErrorCode}" arg2="0" />
+   <equals arg1="${BehatErrorCode}" arg2="0"/>
        </condition>
     </target>
 
     <target name="phpcov" depends="composer"
          description="Generate HTML and clover output for coverage">
       <exec executable="${buildbin}/phpcov">
-        <arg value="merge" />
-        <arg value="--clover=${basedir}/build/coverage/combined_clover.xml" />
-        <arg value="${basedir}/build/logs/coverage/" />
+        <arg value="merge"/>
+        <arg value="--clover=${builddir}/coverage/combined_clover.xml"/>
+        <arg value="${builddir}/logs/coverage/"/>
       </exec>
       <exec executable="${buildbin}/phpcov">
-        <arg value="merge" />
-        <arg value="--html=${basedir}/build/coverage/html" />
-        <arg value="${basedir}/build/logs/coverage/" />
+        <arg value="merge"/>
+        <arg value="--html=${builddir}/coverage/html"/>
+        <arg value="${builddir}/logs/coverage/"/>
       </exec>
     </target>
 
     <target name="composer" description="Run Composer"
       depends="get-composer,composer-check,composer-install,composer-update,composer-show" unless="composer.executed">
-      <property name="composer.executed" value="true" />
+      <property name="composer.executed" value="true"/>
     </target>
 
     <target name="get-composer" description="Get Composer" unless="composer.phar.exists">
-      <mkdir dir="${buildbin}" />
+      <mkdir dir="${buildbin}"/>
       <get dest="${buildbin}" skipexisting="true">
-        <url url="https://getcomposer.org/composer.phar" />
+        <url url="https://getcomposer.org/composer.phar"/>
       </get>
       <available file="${buildbin}/composer.phar" property="composer.phar.exists"/>
     </target>
 
     <target name="composer-check" description="Check Composer">
       <exec executable="php" failonerror="true" dir="${composerdir}">
-        <arg value="${buildbin}/composer.phar" />
-        <arg value="self-update" />
+        <arg value="${buildbin}/composer.phar"/>
+        <arg value="self-update"/>
       </exec>
       <available file="${composerdir}/composer.lock" property="composer.lock.exists"/>
     </target>
 
     <target name="composer-install" description="Run Composer install" unless="composer.lock.exists">
       <exec executable="php" failonerror="true" dir="${composerdir}">
-        <arg value="${buildbin}/composer.phar" />
-        <arg value="install" />
+        <arg value="${buildbin}/composer.phar"/>
+        <arg value="install"/>
       </exec>
     </target>
 
     <target name="composer-update" description="Run Composer update" if="composer.lock.exists">
       <exec executable="php" failonerror="true" dir="${composerdir}">
-        <arg value="${buildbin}/composer.phar" />
-        <arg value="update" />
+        <arg value="${buildbin}/composer.phar"/>
+        <arg value="update"/>
       </exec>
     </target>
 
     <target name="composer-show" description="Run Composer show" if="composer.lock.exists">
       <exec executable="php" failonerror="true" dir="${composerdir}" outputproperty="output">
-        <arg value="${buildbin}/composer.phar" />
-        <arg value="show" />
+        <arg value="${buildbin}/composer.phar"/>
+        <arg value="show"/>
       </exec>
-      <echo message="${output}" />
+      <echo message="${output}"/>
     </target>
 
  <target name="phpcb" depends="composer"
          description="Aggregate tool output with PHP_CodeBrowser">
   <exec executable="${buildbin}/phpcb">
-   <arg value="--log" />
-   <arg path="${basedir}/build/logs" />
-   <arg value="--source" />
-   <arg path="${drupalmodules}" />
-   <arg value="--output" />
-   <arg path="${basedir}/build/code-browser" />
+   <arg value="--log"/>
+   <arg path="${builddir}/logs"/>
+   <arg value="--source"/>
+   <arg path="${drupalmodules}"/>
+   <arg value="--output"/>
+   <arg path="${builddir}/code-browser"/>
   </exec>
  </target>
 
   <target name="coder" depends="composer"
     description="Drush to install coder module">
     <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
-      <arg value="-y" />
-      <arg value="dl" />
-      <arg value="coder-8.x-2.3" />
-      <arg value="--cache" />
-      <arg value="${drushurl}" />
+      <arg value="-y"/>
+      <arg value="dl"/>
+      <arg value="coder-8.x-2.3"/>
+      <arg value="--cache"/>
+      <arg value="${drushurl}"/>
     </exec>
   </target>
   <target name="enable-bdd-code-coverage" depends="composer"
     description="Drush to enable code_coverage module to allow its capture during BDD tests">
     <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
-      <arg value="-y" />
-      <arg value="en" />
-      <arg value="code_coverage" />
+      <arg value="-y"/>
+      <arg value="en"/>
+      <arg value="code_coverage"/>
     </exec>
   </target>
   <target name="php-webserver-start" description="Start a simple webserver for PHP files" depends="setup-database">
@@ -392,14 +395,14 @@
         </exec>
   </target>
   <target name="configure-database" description="Configure settings.local.php file" unless="settings.local.php.exists">
-    <copy file="${basedir}/${drupalroot}/sites/default/example.settings.local.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.php" overwrite="yes" />
+    <copy file="${basedir}/${drupalroot}/sites/default/example.settings.local.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.php" overwrite="yes"/>
     <exec executable="ex" failonerror="true" dir="${basedir}/${drupalroot}">
-      <arg value="${basedir}/${drupalroot}/sites/default/settings.local.php" />
-      <arg value="+%s/'database'.*=>.*'\zs.*\ze'/${db.name}/" />
-      <arg value="+%s/'username'.*=>.*'\zs.*\ze'/${db.user}/" />
-      <arg value="+%s/'password'.*=>.*'\zs.*\ze'/${db.pass}/" />
-      <arg value="+%s/'host'.*=>.*'\zs.*\ze'/${db.host}/" />
-      <arg value="-scwq!" />
+      <arg value="${basedir}/${drupalroot}/sites/default/settings.local.php"/>
+      <arg value="+%s/'database'.*=>.*'\zs.*\ze'/${db.name}/"/>
+      <arg value="+%s/'username'.*=>.*'\zs.*\ze'/${db.user}/"/>
+      <arg value="+%s/'password'.*=>.*'\zs.*\ze'/${db.pass}/"/>
+      <arg value="+%s/'host'.*=>.*'\zs.*\ze'/${db.host}/"/>
+      <arg value="-scwq!"/>
     </exec>
     <available file="${basedir}/${drupalroot}/sites/default/settings.local.php" property="settings.local.php.exists"/>
   </target>
@@ -412,8 +415,8 @@
   </target>
   <target name="drop-database" description="Clean the database" >
     <exec executable="${buildbin}/drush" failonerror="true" dir="${basedir}/${drupalroot}">
-        <arg value="sql-drop" />
-        <arg value="--yes" />
+        <arg value="sql-drop"/>
+        <arg value="--yes"/>
     </exec>
   </target>
   <target name="service-layer-start" description="Start the mock service layer.">
@@ -425,20 +428,20 @@
     </exec>
   </target>
   <target name="combine-junit-xml" description="Combine JUnits xml results files into a single for using on other apps.">
-    <copy file="${basedir}/build/coverage/combined_clover.xml" todir="${basedir}/build/logs" failonerror="false" />
-    <fileset id="fileset" dir="${basedir}/build/behat">
+    <copy file="${builddir}/coverage/combined_clover.xml" todir="${builddir}/logs" failonerror="false"/>
+    <fileset id="fileset" dir="${builddir}/behat">
       <include name="*.xml"/>
     </fileset>
     <pathconvert refid="fileset" property="converted" pathsep=" "/>
-    <exec executable="${composerdir}/merge_junit_results.py" output="${basedir}/build/logs/junit/combined_junit.xml" failonerror="false">
+    <exec executable="${composerdir}/merge_junit_results.py" output="${builddir}/logs/junit/combined_junit.xml" failonerror="false">
       <env key="PATH" value="/opt/rh/python27/root/usr/bin:${env.PATH}"/>
       <env key="LD_LIBRARY_PATH" value="/opt/rh/python27/root/usr/lib64:${env.LD_LIBRARY_PATH}"/>
       <arg line="${converted}"/>
     </exec>
-    <copy file="${basedir}/build/logs/junit.xml" todir="${basedir}/build/logs/junit" failonerror="false" />
+    <copy file="${builddir}/logs/junit.xml" todir="${builddir}/logs/junit" failonerror="false"/>
     <exec executable="${buildbin}/phpjunitmerge" failonerror="false" >
-      <arg value="${basedir}/build/logs/junit" />
-      <arg value="${basedir}/build/logs/combined_junit.xml" />
+      <arg value="${builddir}/logs/junit"/>
+      <arg value="${builddir}/logs/combined_junit.xml"/>
     </exec>
   </target>
 
