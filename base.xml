@@ -16,11 +16,13 @@
   <property name="builddir" value="${composerdir}/build"/>   <!-- Build dir for result files. -->
   <property name="fileexts" value="php,module,inc,install,profile,theme"/>
   <property name="fileextsexp" value="*.php,*.module,*.inc,*.install,*.profile,*.theme"/>
+  <property name="phpunitxml" value="${composerdir}/phpunit-ci.xml"/>
   <available file="${basedir}/${drupalroot}/index.php" property="drupal.exists"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/example.settings.local.php" property="drupal.example.settings.exists"/>
   <available file="${composerdir}/composer.skip" property="composer.executed"/>
   <available file="${buildbin}/composer.phar" property="composer.phar.exists"/>
+  <available file="${phpunitxml}" property="phpunit.xml.exists"/>
 
   <condition property="parallel-lint" value="${buildbin}/parallel-lint.bat" else="${buildbin}/parallel-lint">
     <os family="windows"/>
@@ -251,13 +253,13 @@
         </exec>
     </target>
 
-    <target name="phpunit" description="Run unit tests with PHPUnit" depends="composer">
+    <target name="phpunit" description="Run unit tests with PHPUnit" depends="composer" if="phpunit.xml.exists">
         <exec executable="${buildbin}/phpunit" failonerror="true">
     <env key="PATH" value="${buildbin}:${env.PATH}"/>
             <arg value="-d"/>
             <arg value="memory_limit=2G"/>
             <arg value="-c"/>
-            <arg value="${composerdir}/phpunit-ci.xml"/>
+            <arg value="${phpunitxml}"/>
             <arg value="--testsuite"/>
             <arg value="All Code"/>
       <arg path="${drupalmodules}"/>
