@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copy and rename to phpunit.xml. Customize as needed. -->
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         syntaxCheck="false"
+         bootstrap="includes/bootstrap.php"
+         stopOnFailure="false"
+         convertErrorsToExceptions="true" convertNoticesToExceptions="true" convertWarningsToExceptions="true"
+        >
+    <php>
+        <const name="TESTING" value="TRUE"/>
+        <const name="PREFIX" value=""/>
+        <!-- These variables may alternatively be set as bash environment variables. -->
+
+        <!--DB User must have create/drop permissions-->
+        <!-- For now, you must create this database yourself before running tests. -->
+        <!--<const name="D7_DB_URL" value="sqlite:/mnt/ramdisk/.ht.sqlite.test"/>-->
+        <const name="D7_DB_URL" value="mysql://drupal:drupal@localhost/drupal7"/>
+        <const name="DB_USER" value="drupal"/>
+        <const name="DB_PWD" value="drupal"/>
+        <const name="DB_DB" value="drupal"/>
+
+        <!-- URL for the to-be-tested Drupal. Defaults to http://upal -->
+        <!-- The url *must* end in upal -->
+        <const name="D7_WEB_URL" value="http://localhost:18888"/>
+
+    <!--Hard code a filesystem path to the to-be-tested Drupal. Defaults to cwd.-->
+    <const name="D7_ROOT" value="../docroot/"/>
+
+        <!--User must have write permissions to this directory.-->
+        <!--If not supplied, defaults to sys_get_tmp_dir().-->
+        <!-- <var name="D7_TMP" value="/tmp"/> -->
+
+        <!--Uncomment the line below if your path to drush differs from `which drush`. Use absolute path.-->
+        <!--You currently need 'master' branch of drush after 2011.07.21. Drush 4.6 will be OK - http://drupal.org/node/1105514-->
+        <var name="UNISH_DRUSH" value="./tests/bin/drush"/>
+
+        <!-- Use this to increase the speed of setup -->
+        <const name="D7_USE_DB" value="drupal7.sql"/>
+
+        <includePath>.</includePath>
+    </php>
+    <logging>
+        <log type="coverage-html" target="../build/coverage/phpunit" title="Drupal 7 Site"
+             charset="UTF-8" yui="true" highlight="true"
+             lowUpperBound="35" highLowerBound="70"/>
+        <log type="coverage-clover" target="../build/logs/clover.xml"/>
+        <log type="coverage-php" target="../build/logs/coverage/phpunit.cov"/>
+        <log type="junit" target="../build/logs/junit.xml" logIncompleteSkipped="false"/>
+    </logging>
+    <filter>
+        <blacklist>
+            <directory suffix=".php">../docroot</directory>
+            <directory suffix=".inc">../docroot</directory>
+            <directory suffix=".module">../docroot</directory>
+            <directory suffix=".install">../docroot</directory>
+            <directory suffix=".profile">../docroot</directory>
+            <directory suffix=".engine">../docroot</directory>
+        </blacklist>
+        <whitelist addUncoveredFilesFromWhitelist="false">
+            <directory suffix=".php">../docroot/sites/all/modules/custom/*/src</directory>
+            <directory suffix=".php">../docroot/sites/all/themes/custom/*</directory>
+
+            <!-- Subjective maybe, but given the nature of the development these shouldn't be included
+            <directory suffix=".inc">../drupal/sites/all/modules/custom</directory>
+            <directory suffix=".module">../drupal/sites/all/modules/custom</directory>
+            <directory suffix=".install">../drupal/sites/all/modules/custom</directory>
+            <directory suffix=".php">../drupal/sites/all/themes</directory>
+            <directory suffix=".inc">../drupal/sites/all/themes</directory>
+            <directory suffix=".module">../drupal/sites/all/themes</directory>
+            <directory suffix=".install">../drupal/sites/all/themes</directory>
+            -->
+
+            <exclude>
+                <directory suffix=".php">../docroot/sites/all/libraries</directory>
+                <directory suffix=".tpl.php">../docroot/sites/all/modules/custom</directory>
+                <directory suffix=".php">../docroot/sites/all/modules/custom/*/tests</directory>
+                <directory suffix=".php">../docroot/sites/all/modules/custom/*/Tests</directory>
+                <directory suffix=".php">../docroot/sites/all/themes/*/Tests</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+    <groups>
+        <include>
+            <!--<group>IUTest</group>
+            <group>Cron</group>
+      <group>database</group>-->
+        </include>
+        <exclude>
+            <group>broke</group>
+            <group>wip</group>
+        </exclude>
+    </groups>
+</phpunit>
