@@ -3,12 +3,11 @@
   <!-- Sets the default properties. Override in your build file when needed. -->
   <property environment="env"/>
   <property name="project" value="base-build-xml"/>
-  <property name="drupalroot" value="."/>
-  <!-- E.g. ${basedir}/${drupalroot}/sites/all/themes -->
-  <property name="drupalthemes" value="."/>
-  <!-- E.g. ${basedir}/${drupalroot}/sites/all/modules/custom -->
-  <property name="drupalmodules" value="."/>
-  <property name="pdependarg" value="--quiet"/>
+  <property name="drupalroot" value="docroot"/>
+  <!-- Path to Drupal themes. -->
+  <property name="drupalthemes" value="${builddir}/${drupalroot}/sites/all/themes"/>
+  <!-- Path to Drupal modules. -->
+  <property name="drupalmodules" value="${builddir}/${drupalroot}/sites/all/modules"/>
   <property name="drupalsite" value="default"/>
   <property name="drushurl" value=""/>
   <!-- Define Composer's main directory (location of composer.json file). -->
@@ -27,6 +26,7 @@
   <property name="fileexts" value="php,module,inc,install,profile,theme"/>
   <property name="fileextsexp" value="*.php,*.module,*.inc,*.install,*.profile,*.theme"/>
   <property name="phpunitxml" value="${composerdir}/phpunit-ci.xml"/>
+  <property name="pdependarg" value="--quiet"/>
   <property name="webservicename" value=""/>
   <property name="webservicerouterfile" value=""/>
   <available file="${basedir}/${drupalroot}/index.php" property="drupal.exists"/>
@@ -73,7 +73,7 @@
     <mkdir dir="${builddir}/pdepend"/>
     <mkdir dir="${builddir}/phpdox"/>
   </target>
-  <target name="lint" depends="prepare">
+  <target name="lint" depends="prepare" if="drupal.exists">
     <apply executable="php" failonerror="true">
       <arg value="-l"/>
       <fileset dir="${basedir}/${drupalroot}">
@@ -326,7 +326,7 @@
     </exec>
     <echo message="${output}"/>
   </target>
-  <target name="phpcb" depends="composer" description="Aggregate tool output with PHP_CodeBrowser">
+  <target name="phpcb" depends="composer" description="Aggregate tool output with PHP_CodeBrowser" if="drupal.exists">
     <exec executable="${composerbindir}/phpcb">
       <arg value="--log"/>
       <arg path="${builddir}/logs"/>
@@ -336,23 +336,35 @@
       <arg path="${builddir}/code-browser"/>
     </exec>
   </target>
-  <target name="coder" depends="composer" description="Drush to install Coder module" if="drupal.exists">
+  <target name="drupalcore" depends="composer" description="Download Drupal via Drush" unless="drupal.exists">
+    <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}/..">
+      <arg value="-y"/>
+      <arg value="dl"/>
+      <arg value="drupal-7"/>
+    </exec>
+    <exec executable="sh" failonerror="true" dir="${basedir}/${drupalroot}/.." outputproperty="drupaldir">
+      <arg value="-c"/>
+      <arg value="echo drupal-7*"/>
+    </exec>
+    <symlink link="${basedir}/${drupalroot}" resource="${basedir}/${drupalroot}/../${drupaldir}" overwrite="true"/>
+    <available file="${basedir}/${drupalroot}/index.php" property="drupal.exists"/>
+  </target>
+  <target name="coder" description="Drush to install Coder module" depends="setup-drupal">
     <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="dl"/>
       <arg value="coder-8.x-2.3"/>
-      <arg value="--cache"/>
       <arg value="${drushurl}"/>
     </exec>
   </target>
-  <target name="enable-bdd-code-coverage" depends="composer" description="Drush to enable code_coverage module to allow its capture during BDD tests">
+  <target name="enable-bdd-code-coverage" depends="setup-drupal" description="Drush to enable code_coverage module to allow its capture during BDD tests">
     <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="en"/>
       <arg value="code_coverage"/>
     </exec>
   </target>
-  <target name="php-webserver-start" description="Start a simple webserver for PHP files" depends="setup-database">
+  <target name="php-webserver-start" description="Start a simple webserver for PHP files" depends="setup-drupal">
     <exec executable="${scriptsdir}/start_php_web.sh" dir="${basedir}/${drupalroot}" spawn="true">
         </exec>
   </target>
@@ -388,7 +400,12 @@
     </exec>
     <available file="${basedir}/${drupalroot}/sites/default/settings.local.php" property="settings.local.php.exists"/>
   </target>
-  <target name="setup-database" description="Import the database" depends="composer,configure-database,drop-database">
+  <target name="setup-drupal" description="Setup Drupal installation" depends="composer,drupalcore,setup-database" unless="drupal.settings.exists">
+    <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
+      <arg value="status"/>
+    </exec>
+  </target>
+  <target name="setup-database" description="Import the database" depends="composer,drupalcore,configure-database">
     <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${composerdir}/includes/ntdp_drupal.sql">
       <arg value="-c"/>
       <arg value="`${composerbindir}/drush sql-connect`"/>
@@ -435,7 +452,7 @@
       <arg value="${builddir}/logs/combined_junit.xml"/>
     </exec>
   </target>
-  <target name="drush-composer" description="Drush to install composer dependencies" depends="composer,setup-database">
+  <target name="drush-composer" description="Drush to install composer dependencies" depends="composer,setup-drupal">
     <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="en"/>
