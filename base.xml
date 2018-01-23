@@ -78,74 +78,63 @@
     <mkdir dir="${builddir}/pdepend"/>
     <mkdir dir="${builddir}/phpdox"/>
   </target>
-  <target name="lint" depends="prepare,setup-drupal" if="drupal.exists">
-    <apply executable="php" failonerror="true">
+  <fileset id="drupal-php-files" dir="${drupalroot}">
+    <include name="**/*.php"/>
+    <include name="**/*.inc"/>
+    <include name="**/*.module"/>
+    <include name="**/*.install"/>
+    <include name="**/*.profile"/>
+    <include name="**/*.theme"/>
+    <!-- Excludes any vendor dirs within Drupal root. -->
+    <exclude name="**/vendor/**"/>
+    <!-- Excludes coder_sniffer dir. -->
+    <exclude name="**/coder_sniffer/Drupal/Test/**/*.php"/>
+    <!-- @see: https://github.com/symfony/symfony/issues/11921 -->
+    <exclude name="sites/all/libraries/**/Tests/**/*.php"/>
+    <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
+    <exclude name="sites/all/libraries/**/Resources/**/*.php"/>
+    <modified>
+      <param name="cache.cachefile" value="${builddir}/cache/${project}.lint.drupalroot.properties"/>
+    </modified>
+  </fileset>
+  <fileset id="composer-php-files" dir="${composerdir}">
+    <include name="**/*.php"/>
+    <!-- Excludes coder_sniffer dir. -->
+    <exclude name="vendor/**/coder_sniffer/Drupal/Test/**/*.php"/>
+    <!-- E.g. squizlabs/php_codesniffer/CodeSniffer -->
+    <exclude name="vendor/**/CodeSniffer/**"/>
+    <!-- Ignores all PHP files found within vendor dir. -->
+    <exclude name="vendor/**/*.php"/>
+    <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
+    <exclude name="vendor/**/Resources/**/*.php"/>
+    <!-- E.g. vendor/jakub-onderka/php-parallel-lint/tests/examples -->
+    <exclude name="vendor/**/examples/**/*.php"/>
+    <!-- E.g. vendor/pdepend/pdepend/src/test/resources/files -->
+    <exclude name="vendor/**/resources/**/*.php"/>
+    <modified>
+      <param name="cache.cachefile" value="${builddir}/cache/${project}.lint.composerdir.properties"/>
+    </modified>
+  </fileset>
+  <target name="lint" depends="prepare,drupalcore" if="drupal.exists">
+    <pathconvert property="drupal-php-files" refid="drupal-php-files" pathsep="' '"/>
+    <pathconvert property="composer-php-files" refid="composer-php-files" pathsep="' '"/>
+    <exec executable="php" dir="${basedir}" failonerror="true">
       <arg value="-l"/>
-      <fileset dir="${basedir}/${drupalroot}">
-        <include name="**/*.php"/>
-        <include name="**/*.inc"/>
-        <include name="**/*.module"/>
-        <include name="**/*.install"/>
-        <include name="**/*.profile"/>
-        <include name="**/*.theme"/>
-        <!-- Excludes any vendor dirs within Drupal root. -->
-        <exclude name="**/vendor/**"/>
-        <!-- Excludes coder_sniffer dir. -->
-        <exclude name="**/coder_sniffer/Drupal/Test/**/*.php"/>
-        <!-- @see: https://github.com/symfony/symfony/issues/11921 -->
-        <exclude name="sites/all/libraries/**/Tests/**/*.php"/>
-        <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
-        <exclude name="sites/all/libraries/**/Resources/**/*.php"/>
-        <modified>
-          <param name="cache.cachefile" value="${builddir}/cache/${project}.lint.drupalroot.properties"/>
-        </modified>
-      </fileset>
-      <fileset dir="${composerdir}">
-        <include name="**/*.php"/>
-        <!-- Excludes coder_sniffer dir. -->
-        <exclude name="vendor/**/coder_sniffer/Drupal/Test/**/*.php"/>
-        <!-- E.g. squizlabs/php_codesniffer/CodeSniffer -->
-        <exclude name="vendor/**/CodeSniffer/**"/>
-        <!-- Ignores all PHP files found within vendor dir. -->
-        <exclude name="vendor/**/*.php"/>
-        <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
-        <exclude name="vendor/**/Resources/**/*.php"/>
-        <!-- E.g. vendor/jakub-onderka/php-parallel-lint/tests/examples -->
-        <exclude name="vendor/**/examples/**/*.php"/>
-        <!-- E.g. vendor/pdepend/pdepend/src/test/resources/files -->
-        <exclude name="vendor/**/resources/**/*.php"/>
-        <modified>
-          <param name="cache.cachefile" value="${builddir}/cache/${project}.lint.composerdir.properties"/>
-        </modified>
-      </fileset>
-    </apply>
+      <arg line="'${drupal-php-files}'" />
+      <arg line="'${composer-php-files}'" />
+    </exec>
   </target>
-  <target name="parallel-lint" description="Run PHP parallel lint">
-    <apply executable="${parallel-lint}" dir="${basedir}" failonerror="true">
+  <target name="parallel-lint" description="Run PHP parallel lint" depends="prepare,drupalcore" if="drupal.exists">
+    <pathconvert property="drupal-php-files" refid="drupal-php-files" pathsep="' '"/>
+    <pathconvert property="composer-php-files" refid="composer-php-files" pathsep="' '"/>
+    <exec executable="${parallel-lint}" dir="${basedir}" failonerror="true">
       <arg line="-e"/>
       <arg value="${fileexts}"/>
-      <fileset dir="${drupalroot}">
-        <include name="**/*.php"/>
-        <include name="**/*.inc"/>
-        <include name="**/*.module"/>
-        <include name="**/*.install"/>
-        <include name="**/*.profile"/>
-        <include name="**/*.theme"/>
-        <!-- Excludes any vendor dirs within Drupal root. -->
-        <exclude name="**/vendor/**"/>
-        <!-- Excludes coder_sniffer dir. -->
-        <exclude name="**/coder_sniffer/Drupal/Test/**/*.php"/>
-        <!-- @see: https://github.com/symfony/symfony/issues/11921 -->
-        <exclude name="sites/all/libraries/**/Tests/**/*.php"/>
-        <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
-        <exclude name="sites/all/libraries/**/Resources/**/*.php"/>
-        <modified>
-          <param name="cache.cachefile" value="${builddir}/cache/${project}.lint.drupalroot.properties"/>
-        </modified>
-      </fileset>
+      <arg line="'${drupal-php-files}'" />
+      <arg line="'${composer-php-files}'" />
       <!--<arg path="${drupalroot}"/>-->
       <!--<arg path="${composerdir}"/>-->
-    </apply>
+    </exec>
   </target>
   <target name="phploc" description="Measure project size using PHPLOC">
     <exec executable="${composerbindir}/phploc">
