@@ -343,6 +343,7 @@
       <exec executable="php" failonerror="true" dir="${composerdir}">
         <arg value="${composerbinfile}"/>
         <arg value="install"/>
+        <arg value="--verbose"/>
       </exec>
     </target>
 
