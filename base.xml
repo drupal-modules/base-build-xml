@@ -11,9 +11,17 @@
   <property name="drupalmodules" value="${drupalroot}/sites/all/modules"/>
   <!-- Path to Drupal libraries. -->
   <property name="drupallibraries" value="${drupalroot}/sites/all/libraries"/>
+  <!-- Path to Drupal files. -->
+  <property name="drupalfiles" value="${drupalroot}/sites/${drupalsite}/files"/>
+  <!-- Drupal URL. -->
   <property name="drushurl" value=""/>
   <!-- Path to existing Drupal's db file to import. -->
   <property name="drupaldbfile" value="drupal.sql"/>
+  <!-- Path to existing file with list of modules to enable. -->
+  <property name="modules-contrib-file" value="contrib.txt"/>
+  <property name="modules-custom-file" value="custom.txt"/>
+  <property name="modules-devel-file" value="devel.txt"/>
+  <property name="modules-features-file" value="features.txt"/>
   <!-- Define Composer's main directory (location of composer.json file). -->
   <property name="composerdir" value="${basedir}"/>
   <!-- Composer's vendor dir. -->
@@ -40,20 +48,33 @@
   <available file="${composerbinfile}" property="composer.exists"/>
   <available file="${phpunitxml}" property="phpunit.xml.exists"/>
   <available file="${drupaldbfile}" property="drupaldbfile.exists"/>
+  <available file="${basedir}/build.properties" property="build.properties.exists"/>
+  <!-- Verify the presence of files consisting list of modules to enable. -->
+  <available file="${basedir}/${modules-contrib-file}" property="contrib.txt.exists"/>
+  <available file="${basedir}/${modules-custom-file}" property="custom.txt.exists"/>
+  <available file="${basedir}/${modules-devel-file}" property="devel.txt.exists"/>
+  <available file="${basedir}/${modules-features-file}" property="features.txt.exists"/>
+  <!-- Load properties from the file when present. -->
   <condition property="parallel-lint" value="${composerbindir}/parallel-lint.bat" else="${composerbindir}/parallel-lint">
     <os family="windows"/>
   </condition>
+  <target name="build" depends="prepare,lint,phploc,pdepend,phpmd-ci,phpcs-ci,phpcs-security-ci,phpcpd,phpunit,behat,phpcov,combine-junit-xml,phpcb"/>
+  <target name="build-parallel" depends="prepare,run-tests,combine-junit-xml"/>
   <target name="run-tests" description="Run tools in parallel">
     <parallel threadCount="2">
       <sequential>
         <antcall target="pdepend"/>
         <antcall target="phpmd-ci"/>
       </sequential>
+      <antcall target="docblox"/>
       <antcall target="lint"/>
+      <antcall target="phpcb"/>
+      <antcall target="phpcov"/>
       <antcall target="phpcpd"/>
       <antcall target="phpcs-ci"/>
+      <antcall target="phpcs-security-ci"/>
       <antcall target="phploc"/>
-      <antcall target="docblox"/>
+      <antcall target="phpunit"/>
     </parallel>
   </target>
   <target name="clean" description="Cleanup build artifacts">
@@ -67,7 +88,7 @@
     <delete file="${composerdir}/composer.lock"/>
     <delete file="${composerdir}/composer.skip"/>
   </target>
-  <target name="prepare" depends="clean,composer,coder" description="Prepare for build">
+  <target name="prepare" depends="load-build-properties,clean,composer,coder" description="Prepare for build">
     <mkdir dir="${builddir}/api"/>
     <mkdir dir="${builddir}/behat"/>
     <mkdir dir="${builddir}/cache"/>
@@ -79,6 +100,10 @@
     <mkdir dir="${builddir}/pdepend"/>
     <mkdir dir="${builddir}/phpdox"/>
   </target>
+  <target name="load-build-properties" description="Load properties from the file." if="build.properties.exists">
+    <property file="build.properties"/>
+  </target>
+  <!-- Define set of files -->
   <fileset id="drupal.fileset" dir="${drupalroot}">
     <include name="**/*.php"/>
     <include name="**/*.inc"/>
@@ -259,12 +284,12 @@
       <arg path="${drupalmodules}"/>
     </exec>
   </target>
-  <target name="behat" description="Wrapper for BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,web-service-start,enable-bdd-code-coverage,behat-test,behat-run">
+  <target name="behat" description="Wrapper for BDD tests with Behat" depends="composer,build-drupal,phantomjs-start,php-webserver-start,web-service-start,enable-bdd-code-coverage,behat-test,behat-run">
     <antcall target="web-service-stop"/>
     <antcall target="php-webserver-stop"/>
     <antcall target="phantomjs-stop"/>
     <antcall target="drop-database"/>
-    <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files"/>
+    <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files" />
   </target>
   <target name="behat-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
     <exec executable="./bin/behat" failonerror="false" dir="${composerdir}">
@@ -283,6 +308,19 @@
     <condition property="BehatDryRun">
       <equals arg1="${BehatErrorCode}" arg2="0"/>
     </condition>
+  </target>
+  <target name="behat-system" description="Wrapper for BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,web-service-start,enable-bdd-code-coverage,behat-test,behat-system-run">
+    <antcall target="web-service-stop"/>
+    <antcall target="php-webserver-stop"/>
+    <antcall target="phantomjs-stop"/>
+    <antcall target="drop-database"/>
+    <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files"/>
+  </target>
+  <target name="behat-system-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
+      <exec executable="./bin/behat" failonerror="false" dir="${basedir}/tests">
+        <arg value="--profile" />
+        <arg value="systemTest" />
+      </exec>
   </target>
   <target name="phpcov" depends="composer" description="Generate HTML and clover output for coverage">
     <exec executable="${composerbindir}/phpcov">
@@ -470,6 +508,8 @@
       <arg value="${builddir}/logs/combined_junit.xml"/>
     </exec>
   </target>
+  <!-- Drupal targets -->
+  <target name="build-drupal" depends="install,enable-contrib-modules,enable-custom-modules,enable-features-modules,drush-composer"/>
   <target name="drush-composer" description="Drush to install composer dependencies" depends="composer,setup-drupal">
     <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
@@ -483,7 +523,7 @@
     </exec>
     <exec executable="php" dir="${composerdir}">
       <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupallibraries}/composer"/>
-      <env key="COMPOSER" value="${basedir}/${drupalroot}/sites/${drupalsite}/files/composer/composer.json"/>
+      <env key="COMPOSER" value="${drupalfiles}/composer/composer.json"/>
       <arg value="${composerbinfile}"/>
       <arg value="update"/>
       <arg value="--no-dev"/>
@@ -492,9 +532,57 @@
     </exec>
     <exec executable="php" dir="${composerdir}">
       <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupallibraries}/composer"/>
-      <env key="COMPOSER" value="${basedir}/${drupalroot}/sites/${drupalsite}/files/composer/composer.json"/>
+      <env key="COMPOSER" value="${drupalfiles}/composer/composer.json"/>
       <arg value="${composerbinfile}"/>
       <arg value="dump-autoload"/>
     </exec>
+  </target>
+  <target name="enable-contrib-modules" description="Enables Drupal contrib modules." if="contrib.txt.exists">
+    <antcall target="drush-en">
+      <param name="file" value="${contrib.txt.exists}"/>
+    </antcall>
+  </target>
+  <target name="enable-custom-modules" description="Enables Drupal custom modules." if="custom.txt.exists">
+    <antcall target="drush-en">
+      <param name="file" value="${custom.txt.exists}"/>
+    </antcall>
+  </target>
+  <target name="enable-devel-modules" description="Enables Drupal development modules." if="devel.txt.exists">
+    <antcall target="drush-en">
+      <param name="file" value="${devel.txt.exists}"/>
+    </antcall>
+  </target>
+  <target name="enable-features-modules" description="Enables Drupal features modules." if="features.txt.exists">
+    <antcall target="drush-en">
+      <param name="file" value="${features.txt.exists}"/>
+    </antcall>
+  </target>
+  <target name="drush-en" depends="setup-drupal" description="Runs Drush to enable modules listed in the file.">
+    <exec executable="bash" dir="${drupalroot}">
+      <env key="PATH" value="${env.PATH}:${buildbin}"/>
+      <arg value="-c"/>
+      <arg value="cat ${file} | xargs drush -y en"/>
+    </exec>
+  </target>
+  <target name="check-settings-file">
+    <available file="${basedir}/${drupalroot}/sites/default/settings.php" property="settings.php.exists"/>
+  </target>
+  <target name="remove-settings-file" depends="check-settings-file" if="settings.php.exists">
+    <delete file="${drupalroot}/sites/${drupalsite}/settings.php"/>
+  </target>
+  <target name="install" depends="install-run,drush-composer" />
+  <target name="install-run" depends="remove-settings-file,composer">
+    <echo message="Running site install against Drupal"/>
+    <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
+      <env key="PATH" value="${env.PATH}:${buildbin}"/>
+      <arg value="site-install"/>
+      <arg value="-y"/>
+      <arg value="minimal"/>
+      <arg value="--account-name=${admin.user}"/>
+      <arg value="--account-pass=${admin.pass}"/>
+      <arg value="--db-url=${db.url}"/>
+    </exec>
+    <chmod file="${basedir}/${drupalroot}/sites/default/settings.php" perm="+rw" type="file"/>
+    <chmod file="${basedir}/${drupalroot}/sites/default" perm="+rwx" type="dir"/>
   </target>
 </project>
