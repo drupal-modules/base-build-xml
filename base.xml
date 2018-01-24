@@ -16,13 +16,13 @@
   <property name="drupaldbfile" value="drupal.sql"/>
   <!-- Define Composer's main directory (location of composer.json file). -->
   <property name="composerdir" value="${basedir}"/>
+  <!-- Composer's vendor dir. -->
+  <property name="vendordir" value="${composerdir}/vendor"/>
   <!-- Define Composer's bin-dir. -->
-  <property name="composerbindir" value="${composerdir}/bin"/>
+  <property name="composerbindir" value="${vendordir}/composer/bin"/>
   <!-- Define Composer's executable binary file. -->
   <property name="composerbinfile" value="${composerbindir}/composer.phar"/>
   <property name="composersite" value="all"/>
-  <!-- Composer's vendor dir. -->
-  <property name="vendordir" value="${composerdir}/vendor"/>
   <!-- Build dir for result files. -->
   <property name="builddir" value="${composerdir}/build"/>
   <!-- Base build scripts dir. -->
@@ -78,7 +78,7 @@
     <mkdir dir="${builddir}/pdepend"/>
     <mkdir dir="${builddir}/phpdox"/>
   </target>
-  <fileset id="drupal-php-files" dir="${drupalroot}">
+  <fileset id="drupal.fileset" dir="${drupalroot}">
     <include name="**/*.php"/>
     <include name="**/*.inc"/>
     <include name="**/*.module"/>
@@ -94,10 +94,10 @@
     <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
     <exclude name="sites/all/libraries/**/Resources/**/*.php"/>
     <modified>
-      <param name="cache.cachefile" value="${builddir}/cache/${project}.lint.drupalroot.properties"/>
+      <param name="cache.cachefile" value="${builddir}/cache/${project}.drupal.fileset.properties"/>
     </modified>
   </fileset>
-  <fileset id="composer-php-files" dir="${composerdir}">
+  <fileset id="composer.fileset" dir="${composerdir}">
     <include name="**/*.php"/>
     <!-- Excludes coder_sniffer dir. -->
     <exclude name="vendor/**/coder_sniffer/Drupal/Test/**/*.php"/>
@@ -112,29 +112,23 @@
     <!-- E.g. vendor/pdepend/pdepend/src/test/resources/files -->
     <exclude name="vendor/**/resources/**/*.php"/>
     <modified>
-      <param name="cache.cachefile" value="${builddir}/cache/${project}.lint.composerdir.properties"/>
+      <param name="cache.cachefile" value="${builddir}/cache/${project}.composer.fileset.properties"/>
     </modified>
   </fileset>
-  <target name="lint" depends="prepare,drupalcore" if="drupal.exists">
-    <pathconvert property="drupal-php-files" refid="drupal-php-files" pathsep="' '"/>
-    <pathconvert property="composer-php-files" refid="composer-php-files" pathsep="' '"/>
-    <exec executable="php" dir="${basedir}" failonerror="true">
+  <target name="lint" depends="prepare,drupalcore,coder" if="drupal.exists">
+    <apply executable="php" parallel="true" verbose="true" dir="${basedir}" failonerror="true">
       <arg value="-l"/>
-      <arg line="'${drupal-php-files}'" />
-      <arg line="'${composer-php-files}'" />
-    </exec>
+      <fileset refid="drupal.fileset"/>
+      <fileset refid="composer.fileset"/>
+    </apply>
   </target>
-  <target name="parallel-lint" description="Run PHP parallel lint" depends="prepare,drupalcore" if="drupal.exists">
-    <pathconvert property="drupal-php-files" refid="drupal-php-files" pathsep="' '"/>
-    <pathconvert property="composer-php-files" refid="composer-php-files" pathsep="' '"/>
-    <exec executable="${parallel-lint}" dir="${basedir}" failonerror="true">
+  <target name="parallel-lint" description="Run PHP parallel lint" depends="prepare,drupalcore,coder" if="drupal.exists">
+    <apply executable="${parallel-lint}" parallel="true" dir="${basedir}" failonerror="true">
       <arg line="-e"/>
       <arg value="${fileexts}"/>
-      <arg line="'${drupal-php-files}'" />
-      <arg line="'${composer-php-files}'" />
-      <!--<arg path="${drupalroot}"/>-->
-      <!--<arg path="${composerdir}"/>-->
-    </exec>
+      <fileset refid="drupal.fileset"/>
+      <fileset refid="composer.fileset"/>
+    </apply>
   </target>
   <target name="phploc" description="Measure project size using PHPLOC">
     <exec executable="${composerbindir}/phploc">
@@ -373,7 +367,7 @@
     <exec executable="${composerbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="dl"/>
-      <arg value="coder-8.x-2.3"/>
+      <arg value="coder-8.x-2.12"/>
       <arg value="${drushurl}"/>
     </exec>
   </target>
