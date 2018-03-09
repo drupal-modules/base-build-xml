@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-  <property name="drupalroot" value="drupal"/>
-  <property name="drupalmodules" value="${basedir}/${drupalroot}/sites/all/modules/custom"/>
-  <property name="drupalthemes" value=""/>
-  <property name="pdependignore" value=""/>
+  <property name="drupalroot" value="drupal" />
+  <property name="drupalmodules" value="${basedir}/${drupalroot}/sites/all/modules/custom" />
+  <property name="drupalthemes" value="" />
+  <!-- Extra argument for pdepend if needed. -->
+  <property name="pdependarg" value="" />
   <property environment="env"/>
   <property name="drupalsite" value="default" />
   <available file="${basedir}/${drupalroot}/sites/${drupalsite}/settings.php" property="drupal.settings.exists"/>
@@ -96,7 +97,7 @@
  </target>
 
  <target name="pdepend" depends="composer"
-         description="Calculate software metrics using PHP_Depend">
+         description="Calculate software metrics using PHP_Depend" unless="pdepend.xml.present">
   <exec executable="${buildbin}/pdepend">
    <arg value="-d" />
    <arg value="memory_limit=256M" />
@@ -105,9 +106,10 @@
    <arg value="--jdepend-chart=${basedir}/build/pdepend/dependencies.svg" />
    <arg value="--overview-pyramid=${basedir}/build/pdepend/overview-pyramid.svg" />
    <arg value="--summary-xml=${basedir}/build/logs/pdepend.xml" />
-   <arg value="${pdependignore}" />
+   <arg value="${pdependarg}" />
    <arg path="${drupalmodules}" />
   </exec>
+  <available file="${basedir}/build/logs/pdepend.xml" property="pdepend.xml.present"/>
  </target>
 
  <target name="phpmd" depends="composer"
