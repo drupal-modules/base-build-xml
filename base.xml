@@ -60,12 +60,6 @@
     <include name="**/*.install" />
     <include name="**/*.profile" />
     <include name="**/*.theme" />
-    <exclude name="sites/all/modules/contrib/coder/**/*.php" />
-    <exclude name="sites/all/modules/contrib/coder/**/*.inc" />
-    <exclude name="sites/all/modules/contrib/coder/**/*.module" />
-    <exclude name="sites/all/modules/coder/**/*.php" />
-    <exclude name="sites/all/modules/coder/**/*.inc" />
-    <exclude name="sites/all/modules/coder/**/*.module" />
     <!-- @see: https://github.com/symfony/symfony/issues/11921 -->
     <exclude name="sites/all/libraries/**/Tests/**/*.php" />
     <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
