@@ -1,8 +1,8 @@
 {
   "name": "NT/base-build-xml",
-  "description": "A base Ant build config.",
+  "description": "A base Ant build config to build and test Drupal code.",
   "license": "GPL",
-  "keywords": [ "ant", "build" ],
+  "keywords": [ "ant", "build", "php", "Drupal" ],
   "require-dev": {
     "andreas-weber/php-junit-merge":   "1.*@stable",
     "behat/behat":                     "2.*@stable",
