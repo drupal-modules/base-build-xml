@@ -27,7 +27,7 @@
   <!-- Composer's vendor dir. -->
   <property name="vendordir" value="${composerdir}/vendor"/>
   <!-- Define Composer's bin-dir. -->
-  <property name="vendorbindir" value="${vendordir}/bin"/>
+  <property name="vendorbindir" value="${vendordir}/composer/bin"/>
   <!-- Define Composer's executable binary file. -->
   <property name="composerbinfile" value="${vendorbindir}/composer.phar"/>
   <property name="composersite" value="all"/>
@@ -355,6 +355,11 @@
     <exec executable="php" failonerror="true" dir="${composerdir}">
       <arg value="${composerbinfile}"/>
       <arg value="self-update"/>
+    </exec>
+    <exec executable="php" failonerror="true" dir="${composerdir}" outputproperty="vendorbindir">
+      <arg value="${composerbinfile}"/>
+      <arg value="config"/>
+      <arg value="bin-dir"/>
     </exec>
   </target>
   <target name="composer-install" description="Run Composer install" depends="get-composer" unless="composer.lock.exists">
