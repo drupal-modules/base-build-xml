@@ -88,7 +88,7 @@
     <delete file="${composerdir}/composer.lock"/>
     <delete file="${composerdir}/composer.skip"/>
   </target>
-  <target name="prepare" depends="load-build-properties,clean,composer,coder" description="Prepare for build">
+  <target name="prepare" depends="load-build-properties,clean,composer" description="Prepare for build">
     <mkdir dir="${builddir}/api"/>
     <mkdir dir="${builddir}/behat"/>
     <mkdir dir="${builddir}/cache"/>
@@ -141,7 +141,7 @@
       <param name="cache.cachefile" value="${builddir}/cache/${project}.composer.fileset.properties"/>
     </modified>
   </fileset>
-  <target name="lint" depends="prepare,drupalcore,coder" if="drupal.exists">
+  <target name="lint" depends="prepare,drupalcore" if="drupal.exists">
     <apply executable="php" parallel="true" verbose="true" dir="${basedir}" failonerror="true">
       <arg value="-l"/>
       <fileset refid="composer.fileset"/>
@@ -151,7 +151,7 @@
       <fileset refid="drupal.fileset"/>
     </apply>
   </target>
-  <target name="parallel-lint" description="Run PHP parallel lint" depends="prepare,drupalcore,coder" if="drupal.exists">
+  <target name="parallel-lint" description="Run PHP parallel lint" depends="prepare,drupalcore" if="drupal.exists">
     <apply executable="${parallel-lint}" parallel="true" dir="${basedir}" failonerror="true">
       <arg line="-e"/>
       <arg value="${fileexts}"/>
@@ -210,10 +210,17 @@
     </exec>
   </target>
   <target name="phpcs-coder" depends="composer" if="drupal.exists" description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
+    <!--
+    <exec executable="${vendorbindir}/phpcs">
+      <arg value="__config-set"/>
+      <arg value="installed_paths"/>
+      <arg value="${vendordir}/drupal/coder/coder_sniffer"/>
+    </exec>
+    -->
     <exec executable="${vendorbindir}/phpcs">
       <arg value="-d"/>
       <arg value="memory_limit=256M"/>
-      <arg value="--standard=${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal"/>
+      <arg value="--standard=${vendordir}/drupal/coder/coder_sniffer/Drupal"/>
       <arg value="--extensions=${fileexts}"/>
       <arg path="${drupalmodules}"/>
       <arg path="${drupalthemes}"/>
@@ -223,7 +230,7 @@
     <exec executable="${vendorbindir}/phpcs">
       <arg value="-d"/>
       <arg value="memory_limit=256M"/>
-      <arg value="--standard=${basedir}/${drupalroot}/sites/all/modules/contrib/coder/coder_sniffer/Drupal"/>
+      <arg value="--standard=${vendorbindir}/drupal/coder/coder_sniffer/Drupal"/>
       <arg value="--report=checkstyle"/>
       <arg value="--report-file=${builddir}/logs/checkstyle.xml"/>
       <arg value="--report-xml=${builddir}/logs/codesniffer.xml"/>
@@ -233,7 +240,8 @@
     </exec>
   </target>
   <target name="phpcs-security" depends="composer" description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
-    <symlink link="${vendordir}/squizlabs/php_codesniffer/CodeSniffer/Standards/Security"
+    <!-- @see: https://github.com/FloeDesignTechnologies/phpcs-security-audit/issues/2 -->
+    <symlink link="${vendordir}/squizlabs/php_codesniffer/src/Standards/Security"
              resource="${vendordir}/pheromone/phpcs-security-audit/Security"
              overwrite="true"/>
     <exec executable="${vendorbindir}/phpcs">
@@ -246,7 +254,8 @@
     </exec>
   </target>
   <target name="phpcs-security-ci" depends="composer" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
-    <symlink link="${vendordir}/squizlabs/php_codesniffer/CodeSniffer/Standards/Security"
+    <!-- @see: https://github.com/FloeDesignTechnologies/phpcs-security-audit/issues/2 -->
+    <symlink link="${vendordir}/squizlabs/php_codesniffer/src/Standards/Security"
              resource="${vendordir}/pheromone/phpcs-security-audit/Security"
              overwrite="true"/>
     <exec executable="${vendorbindir}/phpcs">
@@ -424,14 +433,6 @@
     </exec>
     -->
   </target>
-  <target name="coder" description="Drush to install Coder module" depends="setup-drupal">
-    <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
-      <arg value="-y"/>
-      <arg value="dl"/>
-      <arg value="coder-8.x-2.12"/>
-      <arg value="${drushurl}"/>
-    </exec>
-  </target>
   <target name="enable-bdd-code-coverage" depends="setup-drupal" description="Drush to enable code_coverage module to allow its capture during BDD tests">
     <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
@@ -531,7 +532,7 @@
   </target>
   <!-- Drupal targets -->
   <target name="build-drupal" depends="install,enable-contrib-modules,enable-custom-modules,enable-features-modules,drush-composer"/>
-  <target name="drush-composer" description="Drush to install composer dependencies" depends="composer,setup-drupal">
+  <target name="drush-composer" description="Drush to install composer dependencies" if="drupal.exists" depends="composer,setup-drupal">
     <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="en"/>
@@ -580,7 +581,7 @@
   </target>
   <target name="drush-en" depends="setup-drupal" description="Runs Drush to enable modules listed in the file.">
     <exec executable="bash" dir="${drupalroot}">
-      <env key="PATH" value="${env.PATH}:${buildbin}"/>
+      <env key="PATH" value="${env.PATH}:${vendorbindir}"/>
       <arg value="-c"/>
       <arg value="cat ${file} | xargs drush -y en"/>
     </exec>
@@ -594,8 +595,8 @@
   <target name="install" depends="install-run,drush-composer" />
   <target name="install-run" depends="remove-settings-file,composer">
     <echo message="Running site install against Drupal"/>
-    <exec executable="${buildbin}/drush" dir="${basedir}/${drupalroot}">
-      <env key="PATH" value="${env.PATH}:${buildbin}"/>
+    <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
+      <env key="PATH" value="${env.PATH}:${vendorbindir}"/>
       <arg value="site-install"/>
       <arg value="-y"/>
       <arg value="minimal"/>
