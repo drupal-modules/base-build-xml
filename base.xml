@@ -144,16 +144,23 @@
   <target name="lint" depends="prepare,drupalcore,coder" if="drupal.exists">
     <apply executable="php" parallel="true" verbose="true" dir="${basedir}" failonerror="true">
       <arg value="-l"/>
-      <fileset refid="drupal.fileset"/>
       <fileset refid="composer.fileset"/>
+    </apply>
+    <apply executable="php" parallel="true" verbose="true" dir="${basedir}" failonerror="true">
+      <arg value="-l"/>
+      <fileset refid="drupal.fileset"/>
     </apply>
   </target>
   <target name="parallel-lint" description="Run PHP parallel lint" depends="prepare,drupalcore,coder" if="drupal.exists">
     <apply executable="${parallel-lint}" parallel="true" dir="${basedir}" failonerror="true">
       <arg line="-e"/>
       <arg value="${fileexts}"/>
-      <fileset refid="drupal.fileset"/>
       <fileset refid="composer.fileset"/>
+    </apply>
+    <apply executable="${parallel-lint}" parallel="true" dir="${basedir}" failonerror="true">
+      <arg line="-e"/>
+      <arg value="${fileexts}"/>
+      <fileset refid="drupal.fileset"/>
     </apply>
   </target>
   <target name="phploc" description="Measure project size using PHPLOC">
