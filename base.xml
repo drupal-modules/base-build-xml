@@ -58,7 +58,7 @@
   <condition property="parallel-lint" value="${vendorbindir}/parallel-lint.bat" else="${vendorbindir}/parallel-lint">
     <os family="windows"/>
   </condition>
-  <target name="build" depends="prepare,lint,phploc,pdepend,phpmd-ci,phpcs-ci,phpcs-security-ci,phpcpd,phpunit,behat,phpcov,combine-junit-xml,phpcb"/>
+  <target name="build" depends="prepare,parallel-lint,phploc,pdepend,phpmd-ci,phpcs-ci,phpcs-security-ci,phpcpd,phpunit,behat,phpcov,combine-junit-xml,phpcb"/>
   <target name="build-parallel" depends="prepare,run-tests,combine-junit-xml"/>
   <target name="run-tests" description="Run tools in parallel">
     <parallel threadCount="2">
