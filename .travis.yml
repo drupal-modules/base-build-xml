@@ -18,6 +18,4 @@ before_install:
 install:
   - # $DRUSH qd --yes --no-server --root=docroot/ # @fixme
 script:
-  - ant -f base.xml parallel-lint lint
-after_script:
-  - ant -f base.xml composer-show
+  - ant -f base.xml build
