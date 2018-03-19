@@ -27,7 +27,7 @@
   <!-- Composer's vendor dir. -->
   <property name="vendordir" value="${composerdir}/vendor"/>
   <!-- Define Composer's bin-dir. -->
-  <property name="vendorbindir" value="${vendordir}/composer/bin"/>
+  <property name="vendorbindir" value="${vendordir}/bin"/>
   <!-- Define Composer's executable binary file. -->
   <property name="composerbinfile" value="${vendorbindir}/composer.phar"/>
   <property name="composersite" value="all"/>

@@ -26,7 +26,7 @@
   },
   "minimum-stability": "dev",
   "config": {
-    "bin-dir": "vendor/composer/bin"
+    "bin-dir": "vendor/bin"
   },
   "repositories": [
     {
