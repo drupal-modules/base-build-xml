@@ -209,28 +209,26 @@
       <arg value="${builddir}/logs/pmd.xml"/>
     </exec>
   </target>
-  <target name="phpcs-coder" depends="composer" if="drupal.exists" description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
-    <!--
+  <target name="phpcs-check" depends="composer" description="Checks installed coding standards.">
     <exec executable="${vendorbindir}/phpcs">
-      <arg value="__config-set"/>
-      <arg value="installed_paths"/>
-      <arg value="${vendordir}/drupal/coder/coder_sniffer"/>
+      <arg value="-i"/>
     </exec>
-    -->
+  </target>
+  <target name="phpcs-coder" depends="composer,phpcs-check" if="drupal.exists" description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
     <exec executable="${vendorbindir}/phpcs">
       <arg value="-d"/>
       <arg value="memory_limit=256M"/>
-      <arg value="--standard=${vendordir}/drupal/coder/coder_sniffer/Drupal"/>
+      <arg value="--standard=Drupal,DrupalPractice"/>
       <arg value="--extensions=${fileexts}"/>
       <arg path="${drupalmodules}"/>
       <arg path="${drupalthemes}"/>
     </exec>
   </target>
-  <target name="phpcs-coder-ci" depends="composer" if="drupal.exists" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server.">
+  <target name="phpcs-coder-ci" depends="composer,phpcs-check" if="drupal.exists" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server.">
     <exec executable="${vendorbindir}/phpcs">
       <arg value="-d"/>
       <arg value="memory_limit=256M"/>
-      <arg value="--standard=${vendorbindir}/drupal/coder/coder_sniffer/Drupal"/>
+      <arg value="--standard=Drupal,DrupalPractice"/>
       <arg value="--report=checkstyle"/>
       <arg value="--report-file=${builddir}/logs/checkstyle.xml"/>
       <arg value="--report-xml=${builddir}/logs/codesniffer.xml"/>
@@ -239,11 +237,7 @@
       <arg path="${drupalthemes}"/>
     </exec>
   </target>
-  <target name="phpcs-security" depends="composer" description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
-    <!-- @see: https://github.com/FloeDesignTechnologies/phpcs-security-audit/issues/2 -->
-    <symlink link="${vendordir}/squizlabs/php_codesniffer/src/Standards/Security"
-             resource="${vendordir}/pheromone/phpcs-security-audit/Security"
-             overwrite="true"/>
+  <target name="phpcs-security" depends="composer,phpcs-check" description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
     <exec executable="${vendorbindir}/phpcs">
       <arg value="-d"/>
       <arg value="memory_limit=256M"/>
@@ -253,11 +247,7 @@
       <arg path="${drupalthemes}"/>
     </exec>
   </target>
-  <target name="phpcs-security-ci" depends="composer" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
-    <!-- @see: https://github.com/FloeDesignTechnologies/phpcs-security-audit/issues/2 -->
-    <symlink link="${vendordir}/squizlabs/php_codesniffer/src/Standards/Security"
-             resource="${vendordir}/pheromone/phpcs-security-audit/Security"
-             overwrite="true"/>
+  <target name="phpcs-security-ci" depends="composer,phpcs-check" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
     <exec executable="${vendorbindir}/phpcs">
       <arg value="-d"/>
       <arg value="memory_limit=256M"/>
