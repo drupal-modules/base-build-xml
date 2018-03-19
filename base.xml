@@ -239,7 +239,7 @@
   </target>
   <target name="phpcs-security" depends="composer,phpcs-check" description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
     <!-- @see: https://github.com/FloeDesignTechnologies/phpcs-security-audit/issues/2 -->
-    <symlink link="${vendordir}/squizlabs/php_codesniffer/src/Standards/Security"
+    <symlink link="${vendordir}/squizlabs/php_codesniffer/CodeSniffer/Standards/Security"
              resource="${vendordir}/pheromone/phpcs-security-audit/Security"
              overwrite="true"/>
     <exec executable="${vendorbindir}/phpcs">
@@ -253,7 +253,7 @@
   </target>
   <target name="phpcs-security-ci" depends="composer,phpcs-check" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
     <!-- @see: https://github.com/FloeDesignTechnologies/phpcs-security-audit/issues/2 -->
-    <symlink link="${vendordir}/squizlabs/php_codesniffer/src/Standards/Security"
+    <symlink link="${vendordir}/squizlabs/php_codesniffer/CodeSniffer/Standards/Security"
              resource="${vendordir}/pheromone/phpcs-security-audit/Security"
              overwrite="true"/>
     <exec executable="${vendorbindir}/phpcs">
