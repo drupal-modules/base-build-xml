@@ -27,7 +27,7 @@
   <!-- Composer's vendor dir. -->
   <property name="vendordir" value="${composerdir}/vendor"/>
   <!-- Define Composer's bin-dir. -->
-  <property name="vendorbindir" value="${composerdir}/bin"/>
+  <property name="vendorbindir" value="${vendordir}/composer/bin"/>
   <!-- Define Composer's executable binary file. -->
   <property name="composerbinfile" value="${vendorbindir}/composer.phar"/>
   <property name="composersite" value="all"/>
@@ -366,12 +366,20 @@
     </exec>
     <available file="${composerdir}/composer.lock" property="composer.lock.exists"/>
   </target>
-  <target name="composer-show" description="Run Composer show" depends="get-composer" if="composer.lock.exists">
-    <exec executable="php" failonerror="true" dir="${composerdir}" outputproperty="output">
+  <target name="composer-show" description="Run Composer show" depends="get-composer,composer-show-config" if="composer.lock.exists">
+    <exec executable="php" failonerror="true" dir="${composerdir}" outputproperty="output-composer-show">
       <arg value="${composerbinfile}"/>
       <arg value="show"/>
     </exec>
-    <echo message="${output}"/>
+    <echo message="${output-composer-show}"/>
+  </target>
+  <target name="composer-show-config" description="Show composer config settings" depends="get-composer">
+    <exec executable="php" failonerror="true" dir="${composerdir}" outputproperty="output-composer-config">
+      <arg value="${composerbinfile}"/>
+      <arg value="config"/>
+      <arg value="--list"/>
+    </exec>
+    <echo message="${output-composer-config}"/>
   </target>
   <target name="phpcb" depends="composer" description="Aggregate tool output with PHP_CodeBrowser" if="drupal.exists">
     <exec executable="${vendorbindir}/phpcb">
