@@ -584,14 +584,14 @@
       <arg value="cat ${file} | xargs drush -y en"/>
     </exec>
   </target>
-  <target name="check-settings-file">
+  <target name="drupal-settings-check">
     <available file="${basedir}/${drupalroot}/sites/default/settings.php" property="settings.php.exists"/>
   </target>
-  <target name="remove-settings-file" depends="check-settings-file" if="settings.php.exists">
+  <target name="drupal-settings-remove" depends="drupal-settings-check" if="settings.php.exists">
     <delete file="${drupalroot}/sites/${drupalsite}/settings.php"/>
   </target>
   <target name="install" depends="install-run,drush-composer" />
-  <target name="install-run" depends="remove-settings-file,composer">
+  <target name="install-run" depends="drupal-settings-remove,composer">
     <echo message="Running site install against Drupal"/>
     <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
       <env key="PATH" value="${env.PATH}:${vendorbindir}"/>
