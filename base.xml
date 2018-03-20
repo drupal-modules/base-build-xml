@@ -303,7 +303,7 @@
       <arg path="${drupalmodules}"/>
     </exec>
   </target>
-  <target name="behat" description="Wrapper for BDD tests with Behat" depends="composer,build-drupal,phantomjs-start,php-webserver-start,web-service-start,enable-bdd-code-coverage,behat-test,behat-run">
+  <target name="behat" if="drupal.exists" description="Wrapper for BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,web-service-start,enable-bdd-code-coverage,behat-test,behat-run">
     <antcall target="web-service-stop"/>
     <antcall target="php-webserver-stop"/>
     <antcall target="phantomjs-stop"/>
@@ -543,7 +543,7 @@
     </exec>
   </target>
   <!-- Drupal targets -->
-  <target name="build-drupal" depends="drupal-install,modules-enable-contrib,modules-enable-custom,modules-enable-features,drush-composer"/>
+  <target name="drupal-build" depends="drupal-install,modules-enable-contrib,modules-enable-custom,modules-enable-features,drush-composer"/>
   <target name="drush-composer" description="Drush to install composer dependencies" if="drupal.exists" depends="composer,drupal-setup">
     <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
