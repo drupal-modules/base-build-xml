@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project default="build">
   <!-- Sets the default properties. Override in your build file when needed. -->
   <property environment="env"/>
   <property name="project" value="base-build-xml"/>
@@ -421,11 +421,15 @@
       <arg value="dl"/>
       <arg value="drupal-7"/>
     </exec>
-    <exec executable="sh" failonerror="true" dir="${basedir}/${drupalroot}/.." outputproperty="drupaldir">
-      <arg value="-c"/>
-      <arg value="echo drupal-7*"/>
-    </exec>
-    <symlink link="${basedir}/${drupalroot}" resource="${drupaldir}" overwrite="true"/>
+    <dirset dir="${basedir}" includes="drupal-7.*" id="drupaldir"/>
+    <fail message="Multiple or zero Drupal directories found: ${toString:drupaldir}!">
+      <condition>
+        <not>
+          <resourcecount refid="drupaldir" when="equal" count="1"/>
+        </not>
+      </condition>
+    </fail>
+    <symlink link="${basedir}/${drupalroot}" resource="${toString:drupaldir}" overwrite="true"/>
     <available file="${basedir}/${drupalroot}/index.php" property="drupal.exists"/>
   </target>
   <target name="drupal-install" description="Install Drupal" depends="composer,drupal-core,database-configure,database-drop" unless="drupal.settings.exists">
