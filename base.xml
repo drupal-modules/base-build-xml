@@ -5,6 +5,10 @@
   <property name="project" value="base-build-xml"/>
   <property name="drupalroot" value="docroot"/>
   <property name="drupalsite" value="default"/>
+  <!-- Drupal default credentials. -->
+  <property name="db.url" value="sqlite://db.sqlite"/>
+  <property name="admin.user" value="admin"/>
+  <property name="admin.pass" value="admin"/>
   <!-- Path to Drupal themes. -->
   <property name="drupalthemes" value="${drupalroot}/sites/all/themes"/>
   <!-- Path to Drupal modules. -->
@@ -594,7 +598,6 @@
   <target name="install-run" depends="drupal-settings-remove,composer">
     <echo message="Running site install against Drupal"/>
     <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
-      <env key="PATH" value="${env.PATH}:${vendorbindir}"/>
       <arg value="site-install"/>
       <arg value="-y"/>
       <arg value="minimal"/>
