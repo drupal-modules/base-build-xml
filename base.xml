@@ -10,13 +10,13 @@
   <property name="admin.user" value="admin"/>
   <property name="admin.pass" value="admin"/>
   <!-- Path to Drupal themes. -->
-  <property name="drupalthemes" value="${drupalroot}/sites/all/themes"/>
+  <property name="drupalthemes" value="sites/all/themes"/>
   <!-- Path to Drupal modules. -->
-  <property name="drupalmodules" value="${drupalroot}/sites/all/modules"/>
+  <property name="drupalmodules" value="sites/all/modules"/>
   <!-- Path to Drupal libraries. -->
-  <property name="drupallibraries" value="${drupalroot}/sites/all/libraries"/>
+  <property name="drupallibraries" value="sites/all/libraries"/>
   <!-- Path to Drupal files. -->
-  <property name="drupalfiles" value="${drupalroot}/sites/${drupalsite}/files"/>
+  <property name="drupalfiles" value="sites/${drupalsite}/files"/>
   <!-- Drupal URL. -->
   <property name="drushurl" value=""/>
   <!-- Path to existing Drupal's db file to import. -->
@@ -109,20 +109,22 @@
   </target>
   <!-- Define set of files -->
   <fileset id="drupal.fileset" dir="${drupalroot}">
-    <include name="**/*.php"/>
-    <include name="**/*.inc"/>
-    <include name="**/*.module"/>
-    <include name="**/*.install"/>
-    <include name="**/*.profile"/>
-    <include name="**/*.theme"/>
+    <include name="sites/**/*.php"/>
+    <include name="sites/**/*.inc"/>
+    <include name="sites/**/*.module"/>
+    <include name="sites/**/*.install"/>
+    <include name="sites/**/*.profile"/>
+    <include name="sites/**/*.theme"/>
+    <!-- Excludes Drupal files folder. -->
+    <exclude name="${drupalfiles}/*"/>
     <!-- Excludes any vendor dirs within Drupal root. -->
-    <exclude name="**/vendor/**"/>
+    <exclude name="sites/**/vendor/**"/>
     <!-- Excludes coder_sniffer dir. -->
-    <exclude name="**/coder_sniffer/Drupal/Test/**/*.php"/>
+    <exclude name="sites/**/coder_sniffer/Drupal/Test/**/*.php"/>
     <!-- @see: https://github.com/symfony/symfony/issues/11921 -->
-    <exclude name="sites/all/libraries/**/Tests/**/*.php"/>
+    <exclude name="${drupallibraries}/**/Tests/**/*.php"/>
     <!-- @see: https://github.com/symfony/polyfill/issues/108 -->
-    <exclude name="sites/all/libraries/**/Resources/**/*.php"/>
+    <exclude name="${drupallibraries}/**/Resources/**/*.php"/>
     <modified>
       <param name="cache.cachefile" value="${builddir}/cache/${project}.drupal.fileset.properties"/>
     </modified>
@@ -156,12 +158,12 @@
     </apply>
   </target>
   <target name="parallel-lint" description="Run PHP parallel lint" depends="prepare,drupal-core" if="drupal.exists">
-    <apply executable="${parallel-lint}" parallel="true" dir="${basedir}" failonerror="true">
+    <apply executable="${parallel-lint}" parallel="true" maxparallel="1000" dir="${basedir}" failonerror="true">
       <arg line="-e"/>
       <arg value="${fileexts}"/>
       <fileset refid="composer.fileset"/>
     </apply>
-    <apply executable="${parallel-lint}" parallel="true" dir="${basedir}" failonerror="true">
+    <apply executable="${parallel-lint}" parallel="true" maxparallel="1000" dir="${basedir}" failonerror="true">
       <arg line="-e"/>
       <arg value="${fileexts}"/>
       <fileset refid="drupal.fileset"/>
@@ -173,8 +175,8 @@
       <arg value="${builddir}/logs/phploc.csv"/>
       <arg value="--names"/>
       <arg value="${fileextsexp}"/>
-      <arg path="${drupalmodules}"/>
-      <arg path="${drupalthemes}"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalthemes}"/>
     </exec>
   </target>
   <target name="pdepend" depends="composer" description="Calculate software metrics using PHP_Depend" unless="pdepend.xml.present">
@@ -556,8 +558,8 @@
       <arg value="-o"/>
     </exec>
     <exec executable="php" dir="${composerdir}">
-      <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupallibraries}/composer"/>
-      <env key="COMPOSER" value="${drupalfiles}/composer/composer.json"/>
+      <env key="COMPOSER_VENDOR_DIR" value="${drupalroot}/${drupallibraries}/composer"/>
+      <env key="COMPOSER" value="${drupalroot}/${drupalfiles}/composer/composer.json"/>
       <arg value="${composerbinfile}"/>
       <arg value="update"/>
       <arg value="--no-dev"/>
@@ -565,8 +567,8 @@
       <arg value="-o"/>
     </exec>
     <exec executable="php" dir="${composerdir}">
-      <env key="COMPOSER_VENDOR_DIR" value="${basedir}/${drupallibraries}/composer"/>
-      <env key="COMPOSER" value="${drupalfiles}/composer/composer.json"/>
+      <env key="COMPOSER_VENDOR_DIR" value="${drupalroot}/${drupallibraries}/composer"/>
+      <env key="COMPOSER" value="${drupalroot}/${drupalfiles}/composer/composer.json"/>
       <arg value="${composerbinfile}"/>
       <arg value="dump-autoload"/>
     </exec>
