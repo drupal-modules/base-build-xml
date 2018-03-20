@@ -145,7 +145,7 @@
       <param name="cache.cachefile" value="${builddir}/cache/${project}.composer.fileset.properties"/>
     </modified>
   </fileset>
-  <target name="lint" depends="prepare,drupalcore" if="drupal.exists">
+  <target name="lint" depends="prepare,drupal-core" if="drupal.exists">
     <apply executable="php" parallel="true" verbose="true" dir="${basedir}" failonerror="true">
       <arg value="-l"/>
       <fileset refid="composer.fileset"/>
@@ -155,7 +155,7 @@
       <fileset refid="drupal.fileset"/>
     </apply>
   </target>
-  <target name="parallel-lint" description="Run PHP parallel lint" depends="prepare,drupalcore" if="drupal.exists">
+  <target name="parallel-lint" description="Run PHP parallel lint" depends="prepare,drupal-core" if="drupal.exists">
     <apply executable="${parallel-lint}" parallel="true" dir="${basedir}" failonerror="true">
       <arg line="-e"/>
       <arg value="${fileexts}"/>
@@ -191,7 +191,7 @@
     </exec>
     <available file="${builddir}/logs/pdepend.xml" property="pdepend.xml.present"/>
   </target>
-  <target name="phpmd" depends="composer,drupalcore" description="Perform project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
+  <target name="phpmd" depends="composer,drupal-core" description="Perform project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
     <exec executable="${vendorbindir}/phpmd">
       <arg value="--suffixes"/>
       <arg value="${fileexts}"/>
@@ -201,7 +201,7 @@
       <arg value="codesize,unusedcode,naming"/>
     </exec>
   </target>
-  <target name="phpmd-ci" depends="composer,drupalcore" description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
+  <target name="phpmd-ci" depends="composer,drupal-core" description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
     <exec executable="${vendorbindir}/phpmd">
       <arg value="--suffixes"/>
       <arg value="${fileexts}"/>
@@ -307,7 +307,7 @@
     <antcall target="web-service-stop"/>
     <antcall target="php-webserver-stop"/>
     <antcall target="phantomjs-stop"/>
-    <antcall target="drop-database"/>
+    <antcall target="database-drop"/>
     <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files" />
   </target>
   <target name="behat-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
@@ -332,7 +332,7 @@
     <antcall target="web-service-stop"/>
     <antcall target="php-webserver-stop"/>
     <antcall target="phantomjs-stop"/>
-    <antcall target="drop-database"/>
+    <antcall target="database-drop"/>
     <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files"/>
   </target>
   <target name="behat-system-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
@@ -415,7 +415,7 @@
       <arg path="${builddir}/code-browser"/>
     </exec>
   </target>
-  <target name="drupalcore" depends="composer" description="Download Drupal via Drush" unless="drupal.exists">
+  <target name="drupal-core" depends="composer" description="Download Drupal via Drush" unless="drupal.exists">
     <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}/..">
       <arg value="-y"/>
       <arg value="dl"/>
@@ -428,21 +428,27 @@
     <symlink link="${basedir}/${drupalroot}" resource="${drupaldir}" overwrite="true"/>
     <available file="${basedir}/${drupalroot}/index.php" property="drupal.exists"/>
   </target>
-  <target name="install-drupal" description="Install Drupal" depends="composer,drupalcore,configure-database,drop-database" unless="drupaldbfile.exists">
-    <!-- @todo
-    <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}/..">
+  <target name="drupal-install" description="Install Drupal" depends="composer,drupal-core,database-configure,database-drop" unless="drupal.settings.exists">
+    <echo message="Running site install against Drupal"/>
+    <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="site-install"/>
+      <arg value="-y"/>
+      <arg value="minimal"/>
+      <arg value="--account-name=${admin.user}"/>
+      <arg value="--account-pass=${admin.pass}"/>
+      <arg value="--db-url=${db.url}"/>
     </exec>
-    -->
+    <chmod file="${basedir}/${drupalroot}/sites/default/settings.php" perm="+rw" type="file"/>
+    <chmod file="${basedir}/${drupalroot}/sites/default" perm="+rwx" type="dir"/>
   </target>
-  <target name="enable-bdd-code-coverage" depends="setup-drupal" description="Drush to enable code_coverage module to allow its capture during BDD tests">
+  <target name="enable-bdd-code-coverage" depends="drupal-setup" description="Drush to enable code_coverage module to allow its capture during BDD tests">
     <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="en"/>
       <arg value="code_coverage"/>
     </exec>
   </target>
-  <target name="php-webserver-start" description="Start a simple webserver for PHP files" depends="setup-drupal">
+  <target name="php-webserver-start" description="Start a simple webserver for PHP files" depends="drupal-setup">
     <exec executable="${scriptsdir}/start_php_web.sh" dir="${basedir}/${drupalroot}" spawn="true">
         </exec>
   </target>
@@ -466,7 +472,7 @@
     <exec executable="${scriptsdir}/stop_web.sh" dir="${scriptsdir}" spawn="true">
         </exec>
   </target>
-  <target name="configure-database" description="Configure settings.local.php file" if="settings.local.php.exists">
+  <target name="database-configure" description="Configure settings.local.php file" if="settings.local.php.exists">
     <copy file="${basedir}/${drupalroot}/sites/default/example.settings.local.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.php" overwrite="yes"/>
     <exec executable="ex" failonerror="true" dir="${basedir}/${drupalroot}">
       <arg value="${basedir}/${drupalroot}/sites/default/settings.local.php"/>
@@ -478,20 +484,20 @@
     </exec>
     <available file="${basedir}/${drupalroot}/sites/default/settings.local.php" property="settings.local.php.exists"/>
   </target>
-  <target name="setup-drupal" description="Setup Drupal installation" depends="composer,drupalcore,setup-database" unless="drupal.settings.exists">
+  <target name="drupal-setup" description="Setup Drupal installation" depends="composer,drupal-core,database-setup" unless="drupal.settings.exists">
     <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="status"/>
     </exec>
   </target>
-  <target name="setup-database" description="Setup the database" if="drupal.exists" depends="import-database,install-drupal">
+  <target name="database-setup" description="Setup the database" if="drupal.exists" depends="database-import,drupal-install">
   </target>
-  <target name="import-database" description="Import the database" if="drupaldbfile.exists" depends="composer,drupalcore,configure-database,drop-database">
+  <target name="database-import" description="Import the database" if="drupaldbfile.exists" depends="composer,drupal-core,database-configure,database-drop">
     <exec executable="bash" failonerror="true" dir="${basedir}/${drupalroot}" input="${drupaldbfile}">
       <arg value="-c"/>
       <arg value="`${vendorbindir}/drush sql-connect`"/>
     </exec>
   </target>
-  <target name="drop-database" description="Clean the database" if="drupal.settings.exists">
+  <target name="database-drop" description="Clean the database" if="drupaldbfile.exists">
     <exec executable="${vendorbindir}/drush" failonerror="true" dir="${basedir}/${drupalroot}">
       <arg value="sql-drop"/>
       <arg value="--yes"/>
@@ -533,8 +539,8 @@
     </exec>
   </target>
   <!-- Drupal targets -->
-  <target name="build-drupal" depends="install,enable-contrib-modules,enable-custom-modules,enable-features-modules,drush-composer"/>
-  <target name="drush-composer" description="Drush to install composer dependencies" if="drupal.exists" depends="composer,setup-drupal">
+  <target name="build-drupal" depends="drupal-install,modules-enable-contrib,modules-enable-custom,modules-enable-features,drush-composer"/>
+  <target name="drush-composer" description="Drush to install composer dependencies" if="drupal.exists" depends="composer,drupal-setup">
     <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="en"/>
@@ -561,27 +567,27 @@
       <arg value="dump-autoload"/>
     </exec>
   </target>
-  <target name="enable-contrib-modules" description="Enables Drupal contrib modules." if="contrib.txt.exists">
-    <antcall target="drush-en">
+  <target name="modules-enable-contrib" description="Enables Drupal contrib modules." if="contrib.txt.exists">
+    <antcall target="modules-enable">
       <param name="file" value="${contrib.txt.exists}"/>
     </antcall>
   </target>
-  <target name="enable-custom-modules" description="Enables Drupal custom modules." if="custom.txt.exists">
-    <antcall target="drush-en">
+  <target name="modules-enable-custom" description="Enables Drupal custom modules." if="custom.txt.exists">
+    <antcall target="modules-enable">
       <param name="file" value="${custom.txt.exists}"/>
     </antcall>
   </target>
-  <target name="enable-devel-modules" description="Enables Drupal development modules." if="devel.txt.exists">
-    <antcall target="drush-en">
+  <target name="modules-enable-devel" description="Enables Drupal development modules." if="devel.txt.exists">
+    <antcall target="modules-enable">
       <param name="file" value="${devel.txt.exists}"/>
     </antcall>
   </target>
-  <target name="enable-features-modules" description="Enables Drupal features modules." if="features.txt.exists">
-    <antcall target="drush-en">
+  <target name="modules-enable-features" description="Enables Drupal features modules." if="features.txt.exists">
+    <antcall target="modules-enable">
       <param name="file" value="${features.txt.exists}"/>
     </antcall>
   </target>
-  <target name="drush-en" depends="setup-drupal" description="Runs Drush to enable modules listed in the file.">
+  <target name="modules-enable" depends="drupal-setup" description="Runs Drush to enable modules listed in the file.">
     <exec executable="bash" dir="${drupalroot}">
       <env key="PATH" value="${env.PATH}:${vendorbindir}"/>
       <arg value="-c"/>
@@ -593,19 +599,5 @@
   </target>
   <target name="drupal-settings-remove" depends="drupal-settings-check" if="settings.php.exists">
     <delete file="${drupalroot}/sites/${drupalsite}/settings.php"/>
-  </target>
-  <target name="install" depends="install-run,drush-composer" />
-  <target name="install-run" depends="drupal-settings-remove,composer">
-    <echo message="Running site install against Drupal"/>
-    <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
-      <arg value="site-install"/>
-      <arg value="-y"/>
-      <arg value="minimal"/>
-      <arg value="--account-name=${admin.user}"/>
-      <arg value="--account-pass=${admin.pass}"/>
-      <arg value="--db-url=${db.url}"/>
-    </exec>
-    <chmod file="${basedir}/${drupalroot}/sites/default/settings.php" perm="+rw" type="file"/>
-    <chmod file="${basedir}/${drupalroot}/sites/default" perm="+rwx" type="dir"/>
   </target>
 </project>
