@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 #
-#  Corey Goldberg, Dec 2012
-#
+#  Original author: Corey Goldberg, Dec 2012
+#  Updated by: Mauricio Lima, Jun 2013
+#    Improvements detecting differente styles of junit report (Jasmine report)
 
 import os
 import sys
@@ -9,9 +10,7 @@ import xml.etree.ElementTree as ET
 
 
 """Merge multiple JUnit XML files into a single results file.
-
 Output dumps to sdtdout.
-
 example usage:
     $ python merge_junit_results.py results1.xml results2.xml > results.xml
 """
@@ -20,10 +19,8 @@ example usage:
 def main():
     args = sys.argv[1:]
     if not args:
-        top_root = ET.Element('testsuites')
-        new_tree = ET.ElementTree(top_root)
-        ET.dump(new_tree)
-        sys.exit(0)
+        usage()
+        sys.exit(2)
     if '-h' in args or '--help' in args:
         usage()
         sys.exit(2)
@@ -39,23 +36,25 @@ def merge_results(xml_files):
 
     for file_name in xml_files:
         tree = ET.parse(file_name)
-        test_suite = tree.getroot()
-        failures += int(test_suite.attrib['failures'])
-        tests += int(test_suite.attrib['tests'])
-        errors += int(test_suite.attrib['errors'])
-        time += float(test_suite.attrib['time'])
-        cases.append(test_suite.getchildren())
+        root = tree.getroot()
+        test_suites = tree.findall('testsuite')
+        if root.tag == 'testsuite':
+            test_suites.append(root)
+        for test_suite in test_suites:
+            failures += int(test_suite.attrib['failures'])
+            tests += int(test_suite.attrib['tests'])
+            errors += int(test_suite.attrib['errors'])
+            time += float(test_suite.attrib['time'] or '0')
+            cases.append(test_suite.getchildren())
 
     new_root = ET.Element('testsuite')
-    top_root = ET.Element('testsuites')
     new_root.attrib['failures'] = '%s' % failures
     new_root.attrib['tests'] = '%s' % tests
     new_root.attrib['errors'] = '%s' % errors
     new_root.attrib['time'] = '%s' % time
     for case in cases:
         new_root.extend(case)
-    top_root.append(new_root)
-    new_tree = ET.ElementTree(top_root)
+    new_tree = ET.ElementTree(new_root)
     ET.dump(new_tree)
 
 
