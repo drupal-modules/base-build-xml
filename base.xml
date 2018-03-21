@@ -63,8 +63,8 @@
   <condition property="parallel-lint" value="${vendorbindir}/parallel-lint.bat" else="${vendorbindir}/parallel-lint">
     <os family="windows"/>
   </condition>
-  <target name="build" depends="prepare,parallel-lint,phploc,pdepend,phpmd-ci,phpcs-security-ci,phpcs-coder-ci,phpcpd,phpunit,behat,phpcov,combine-junit-xml,phpcb"/>
-  <target name="build-parallel" depends="prepare,run-tests,combine-junit-xml"/>
+  <target name="build" depends="prepare,parallel-lint,phploc,pdepend,phpmd-ci,phpcs-security-ci,phpcs-coder-ci,phpcpd,phpunit,behat,phpcov,phpcb"/>
+  <target name="build-parallel" depends="prepare,run-tests"/>
   <target name="run-tests" description="Run tools in parallel">
     <parallel threadCount="2">
       <sequential>
@@ -527,7 +527,7 @@
       </condition>
     </fail>
   </target>
-  <target name="combine-junit-xml" depends="junit-xml-check" description="Combine JUnits XML results files into a single for using on other apps">
+  <target name="junit-xml-combine" depends="junit-xml-check" if="behat-xml-files" description="Combine JUnits XML results files into a single for using on other apps">
     <copy file="${builddir}/coverage/combined_clover.xml" todir="${builddir}/logs" failonerror="false"/>
     <pathconvert refid="behat-xml-files" property="converted" pathsep=" "/>
     <exec executable="${scriptsdir}/merge_junit_results.py" output="${builddir}/logs/junit/combined_junit.xml" failonerror="false">
