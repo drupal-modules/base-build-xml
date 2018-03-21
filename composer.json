@@ -4,7 +4,7 @@
   "license": "GPL",
   "keywords": [ "ant", "build", "php", "Drupal" ],
   "require": {
-    "NT/drupal-phpunit":               "*@dev",
+    "NT/drupal-phpunit":               "dev-master",
     "andreas-weber/php-junit-merge":   "1.*@stable",
     "behat/behat":                     "2.*@stable",
     "cweagans/composer-patches":       "~1.0",
@@ -24,18 +24,11 @@
     "squizlabs/php_codesniffer":       "2.*@stable",
     "vipsoft/code-coverage-extension": "2.*@dev"
   },
-  "require-dev": {
-    "NT/base-build-xml":               "*@dev"
-  },
   "minimum-stability": "dev",
   "config": {
     "bin-dir": "vendor/bin"
   },
   "repositories": [
-    {
-      "type": "git",
-      "url": "https://github.com/National-Theatre/base-build-xml.git"
-    },
     {
       "type": "git",
       "url": "https://github.com/National-Theatre/drupal-phpunit.git"
