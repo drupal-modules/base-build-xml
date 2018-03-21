@@ -1,8 +1,12 @@
 #!/usr/bin/env python
+# Script to merge multiple  JUnit XML files into a single results file.
+# @see: https://gist.github.com/cgoldberg/4320815
 #
-#  Original author: Corey Goldberg, Dec 2012
-#  Updated by: Mauricio Lima, Jun 2013
-#    Improvements detecting differente styles of junit report (Jasmine report)
+# Changelog:
+# - 2012 Dec: Original author: Corey Goldberg
+# - 2013 Jun: Updated by Mauricio Lima: Improvements detecting differente styles of junit report (Jasmine report)
+#   @refs: https://gist.github.com/mauriciosl/5785434
+# - 2016 Oct: Syntax improvements; @refs: https://gist.github.com/julian-r/29e7af6c2d65dc6de368e8b952292648
 
 import os
 import sys
@@ -55,12 +59,11 @@ def merge_results(xml_files):
     for case in cases:
         new_root.extend(case)
     new_tree = ET.ElementTree(new_root)
-    ET.dump(new_tree)
-
+    new_tree.write(sys.stdout.detach(), encoding='utf-8')
 
 def usage():
     this_file = os.path.basename(__file__)
-    print 'Usage:  %s results1.xml results2.xml' % this_file
+    print('Usage:  %s results1.xml results2.xml' % this_file)
 
 
 if __name__ == '__main__':
