@@ -18,4 +18,4 @@ before_install:
 install:
   - # $DRUSH qd --yes --no-server --root=docroot/ # @fixme
 script:
-  - ant -f base.xml drupal-install
+  - ant -f base.xml build
