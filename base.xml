@@ -53,6 +53,7 @@
   <available file="${phpunitxml}" property="phpunit.xml.exists"/>
   <available file="${drupaldbfile}" property="drupaldbfile.exists"/>
   <available file="${basedir}/build.properties" property="build.properties.exists"/>
+  <available file="${scriptsdir}" property="scriptsdir.exists"/>
   <!-- Verify the presence of files consisting list of modules to enable. -->
   <available file="${basedir}/${modules-contrib-file}" property="contrib.txt.exists"/>
   <available file="${basedir}/${modules-custom-file}" property="custom.txt.exists"/>
@@ -71,7 +72,7 @@
         <antcall target="phpmd-ci"/>
       </sequential>
       <antcall target="docblox"/>
-      <antcall target="lint"/>
+      <antcall target="parallel-lint"/>
       <antcall target="phpcb"/>
       <antcall target="phpcov"/>
       <antcall target="phpcpd"/>
@@ -89,6 +90,9 @@
     <delete dir="${builddir}/coverage"/>
     <delete dir="${builddir}/logs"/>
     <delete dir="${builddir}/pdepend"/>
+    <delete dir="${builddir}/phpcs"/>
+    <delete dir="${builddir}/phploc"/>
+    <delete dir="${builddir}/phpmd"/>
     <delete file="${composerdir}/composer.lock"/>
     <delete file="${composerdir}/composer.skip"/>
   </target>
@@ -102,7 +106,10 @@
     <mkdir dir="${builddir}/logs/coverage"/>
     <mkdir dir="${builddir}/logs/junit"/>
     <mkdir dir="${builddir}/pdepend"/>
+    <mkdir dir="${builddir}/phpcs"/>
     <mkdir dir="${builddir}/phpdox"/>
+    <mkdir dir="${builddir}/phploc"/>
+    <mkdir dir="${builddir}/phpmd"/>
   </target>
   <target name="load-build-properties" description="Load properties from the file." if="build.properties.exists">
     <property file="build.properties"/>
@@ -169,51 +176,52 @@
       <fileset refid="drupal.fileset"/>
     </apply>
   </target>
-  <target name="phploc" description="Measure project size using PHPLOC">
+  <target name="phploc" description="Measure project size using PHPLOC" unless="phploc.csv.present">
     <exec executable="${vendorbindir}/phploc">
       <arg value="--log-csv"/>
-      <arg value="${builddir}/logs/phploc.csv"/>
+      <arg value="${builddir}/phploc/phploc.csv"/>
       <arg value="--names"/>
       <arg value="${fileextsexp}"/>
       <arg path="${drupalroot}/${drupalmodules}"/>
       <arg path="${drupalroot}/${drupalthemes}"/>
     </exec>
+    <available file="${builddir}/phploc/phploc.csv" property="phploc.csv.present"/>
   </target>
-  <target name="pdepend" depends="composer" description="Calculate software metrics using PHP_Depend" unless="pdepend.xml.present">
+  <target name="pdepend" depends="composer" description="Calculate software metrics using PHP Depend" unless="pdepend.xml.present">
     <exec executable="${vendorbindir}/pdepend">
       <arg value="-d"/>
       <arg value="memory_limit=256M"/>
       <arg value="--suffix=${fileexts}"/>
-      <arg value="--jdepend-xml=${builddir}/logs/jdepend.xml"/>
-      <arg value="--jdepend-chart=${builddir}/pdepend/dependencies.svg"/>
-      <arg value="--overview-pyramid=${builddir}/pdepend/overview-pyramid.svg"/>
-      <arg value="--summary-xml=${builddir}/logs/pdepend.xml"/>
+      <arg value="--jdepend-xml=${builddir}/pdepend/jdepend.xml"/>
+      <arg value="--jdepend-chart=${builddir}/pdepend/jdepend-dependency-chart.svg"/>
+      <arg value="--overview-pyramid=${builddir}/pdepend/pdepend-overview-pyramid.svg"/>
+      <arg value="--summary-xml=${builddir}/pdepend/pdepend-summary.xml"/>
       <arg value="${pdependarg}"/>
-      <arg path="${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
     </exec>
-    <available file="${builddir}/logs/pdepend.xml" property="pdepend.xml.present"/>
+    <available file="${builddir}/pdepend/pdepend-summary.xml" property="pdepend.xml.present"/>
   </target>
   <target name="phpmd" depends="composer,drupal-core" description="Perform project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
     <exec executable="${vendorbindir}/phpmd">
       <arg value="--suffixes"/>
       <arg value="${fileexts}"/>
-      <arg path="${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
       <arg value="text"/>
       <!--<arg value="${builddir}/phpmd.xml"/>-->
       <arg value="codesize,unusedcode,naming"/>
     </exec>
   </target>
-  <target name="phpmd-ci" depends="composer,drupal-core" description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
+  <target name="phpmd-ci" depends="composer,drupal-core" description="Perform project mess detection using PHPMD creating a log file for the continuous integration server" unless="phpmd.xml.present">
     <exec executable="${vendorbindir}/phpmd">
       <arg value="--suffixes"/>
       <arg value="${fileexts}"/>
-      <arg path="${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
       <arg value="xml"/>
       <arg value="codesize,unusedcode,naming"/>
-      <!--<arg value="${builddir}/phpmd.xml"/>-->
       <arg value="--reportfile"/>
-      <arg value="${builddir}/logs/pmd.xml"/>
+      <arg value="${builddir}/phpmd/phpmd.xml"/>
     </exec>
+    <available file="${builddir}/phpmd/phpmd.xml" property="phpmd.xml.present"/>
   </target>
   <target name="phpcs-check" depends="composer" description="Checks installed coding standards.">
     <exec executable="${vendorbindir}/phpcs">
@@ -226,8 +234,8 @@
       <arg value="memory_limit=256M"/>
       <arg value="--standard=Drupal,DrupalPractice"/>
       <arg value="--extensions=${fileexts}"/>
-      <arg path="${drupalmodules}"/>
-      <arg path="${drupalthemes}"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalthemes}"/>
     </exec>
   </target>
   <target name="phpcs-coder-ci" depends="composer,phpcs-check" if="drupal.exists" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server.">
@@ -236,11 +244,11 @@
       <arg value="memory_limit=256M"/>
       <arg value="--standard=Drupal,DrupalPractice"/>
       <arg value="--report=checkstyle"/>
-      <arg value="--report-file=${builddir}/logs/checkstyle.xml"/>
-      <arg value="--report-xml=${builddir}/logs/codesniffer.xml"/>
+      <arg value="--report-file=${builddir}/phpcs/phpcs-checkstyle.xml"/>
+      <arg value="--report-xml=${builddir}/phpcs/phpcs-codesniffer.xml"/>
       <arg value="--extensions=${fileexts}"/>
-      <arg path="${drupalmodules}"/>
-      <arg path="${drupalthemes}"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalthemes}"/>
     </exec>
   </target>
   <target name="phpcs-security" depends="composer,phpcs-check" description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
@@ -253,8 +261,8 @@
       <arg value="memory_limit=256M"/>
       <arg value="--standard=${vendordir}/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/>
       <arg value="--extensions={fileexts}"/>
-      <arg path="${drupalmodules}"/>
-      <arg path="${drupalthemes}"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalthemes}"/>
     </exec>
   </target>
   <target name="phpcs-security-ci" depends="composer,phpcs-check" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
@@ -268,10 +276,10 @@
       <arg value="--report=checkstyle"/>
       <arg value="--standard=${vendordir}/pheromone/phpcs-security-audit/example_drupal7_ruleset.xml"/>
       <arg value="--extensions=${fileexts}"/>
-      <arg value="--report-file=${builddir}/logs/checkstyle-security.xml"/>
-      <arg value="--report-xml=${builddir}/logs/codesniffer-security.xml"/>
-      <arg path="${drupalmodules}"/>
-      <arg path="${drupalthemes}"/>
+      <arg value="--report-file=${builddir}/phpcs/phpcs-checkstyle-security.xml"/>
+      <arg value="--report-xml=${builddir}/phpcs/phpcs-codesniffer-security.xml"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalthemes}"/>
     </exec>
   </target>
   <target name="phpcpd" description="Find duplicate code using PHPCPD">
@@ -282,13 +290,13 @@
       <arg value="${fileextsexp}"/>
       <arg value="--exclude"/>
       <arg value="${vendordir}"/>
-      <arg path="${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
     </exec>
   </target>
   <target name="docblox" description="Generate API documentation using docblox">
     <exec executable="${vendorbindir}/docblox">
       <arg value="-d"/>
-      <arg value="${drupalmodules}"/>
+      <arg value="${drupalroot}/${drupalmodules}"/>
       <arg value="-t"/>
       <arg value="${builddir}/phpdox"/>
     </exec>
@@ -302,25 +310,25 @@
       <arg value="${phpunitxml}"/>
       <arg value="--testsuite"/>
       <arg value="All Code"/>
-      <arg path="${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
     </exec>
   </target>
-  <target name="behat" if="drupal.exists" description="Wrapper for BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,web-service-start,enable-bdd-code-coverage,behat-test,behat-run">
-    <antcall target="web-service-stop"/>
+  <target name="behat" description="Wrapper for BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,webservice-start,drupal-code-coverage-enable,behat-test,behat-run" if="scriptsdir.exists">
+    <antcall target="webservice-stop"/>
     <antcall target="php-webserver-stop"/>
     <antcall target="phantomjs-stop"/>
     <antcall target="database-drop"/>
     <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files" />
   </target>
   <target name="behat-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
-    <exec executable="./bin/behat" failonerror="false" dir="${composerdir}">
+    <exec executable="${vendorbindir}/behat" failonerror="false" dir="${composerdir}">
       <env key="PATH" value="${env.PATH}:${vendorbindir}"/>
       <arg value="--profile"/>
       <arg value="ci"/>
     </exec>
   </target>
   <target name="behat-test" description="Dry Run BDD tests with Behat" depends="composer">
-    <exec executable="./bin/behat" failonerror="false" dir="${composerdir}" resultproperty="BehatErrorCode">
+    <exec executable="${vendorbindir}/behat" failonerror="false" dir="${composerdir}" resultproperty="BehatErrorCode">
       <env key="PATH" value="${env.PATH}:${vendorbindir}"/>
       <arg value="--dry-run"/>
       <arg value="--format"/>
@@ -330,17 +338,17 @@
       <equals arg1="${BehatErrorCode}" arg2="0"/>
     </condition>
   </target>
-  <target name="behat-system" description="Wrapper for BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,web-service-start,enable-bdd-code-coverage,behat-test,behat-system-run">
-    <antcall target="web-service-stop"/>
+  <target name="behat-system" description="Wrapper for BDD tests with Behat" depends="composer,phantomjs-start,php-webserver-start,webservice-start,drupal-code-coverage-enable,behat-test,behat-system-run" if="scriptsdir.exists">
+    <antcall target="webservice-stop"/>
     <antcall target="php-webserver-stop"/>
     <antcall target="phantomjs-stop"/>
     <antcall target="database-drop"/>
     <fail unless="BehatDryRun" message="Behat Dry run failed so there are faulty feature files"/>
   </target>
   <target name="behat-system-run" description="Run BDD tests with Behat" depends="composer" if="BehatDryRun">
-      <exec executable="./bin/behat" failonerror="false" dir="${basedir}/tests">
-        <arg value="--profile" />
-        <arg value="systemTest" />
+      <exec executable="${vendorbindir}/behat" failonerror="false" dir="${basedir}/tests">
+        <arg value="--profile"/>
+        <arg value="systemTest"/>
       </exec>
   </target>
   <target name="phpcov" depends="composer" description="Generate HTML and clover output for coverage">
@@ -412,7 +420,7 @@
       <arg value="--log"/>
       <arg path="${builddir}/logs"/>
       <arg value="--source"/>
-      <arg path="${drupalmodules}"/>
+      <arg path="${drupalroot}/${drupalmodules}"/>
       <arg value="--output"/>
       <arg path="${builddir}/code-browser"/>
     </exec>
@@ -447,36 +455,34 @@
     <chmod file="${basedir}/${drupalroot}/sites/default/settings.php" perm="+rw" type="file"/>
     <chmod file="${basedir}/${drupalroot}/sites/default" perm="+rwx" type="dir"/>
   </target>
-  <target name="enable-bdd-code-coverage" depends="drupal-setup" description="Drush to enable code_coverage module to allow its capture during BDD tests">
-    <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
-      <arg value="-y"/>
-      <arg value="en"/>
-      <arg value="code_coverage"/>
+  <target name="php-webserver-start" if="scriptsdir.exists" description="Start a simple webserver for PHP files" depends="drupal-setup">
+    <exec executable="${scriptsdir}/start_php_web.sh" dir="${basedir}/${drupalroot}" spawn="true"/>
+  </target>
+  <target name="php-webserver-stop" if="scriptsdir.exists" description="Stop a simple webserver for PHP files">
+    <exec executable="${scriptsdir}/stop_php_web.sh" dir="${basedir}/${drupalroot}" spawn="true"/>
+  </target>
+  <target name="phantomjs-start" if="scriptsdir.exists" description="Start a phantomjs">
+    <exec executable="${scriptsdir}/start_phantomjs.sh" dir="${scriptsdir}" spawn="true"/>
+  </target>
+  <target name="phantomjs-stop" if="scriptsdir.exists" description="Stop a phantomjs">
+    <exec executable="${scriptsdir}/stop_phantomjs.sh" dir="${scriptsdir}" spawn="true"/>
+  </target>
+  <target name="webserver-start" if="scriptsdir.exists" description="Start a simple webserver for json files">
+    <exec executable="${scriptsdir}/start_web.sh" dir="${scriptsdir}" spawn="true"/>
+  </target>
+  <target name="webserver-stop" if="scriptsdir.exists" description="Stop a simple webserver for json files">
+    <exec executable="${scriptsdir}/stop_web.sh" dir="${scriptsdir}" spawn="true"/>
+  </target>
+  <target name="webservice-start" if="scriptsdir.exists" description="Start the web service">
+    <exec executable="${scriptsdir}/start_service.sh" dir="${scriptsdir}" spawn="true">
+      <arg value="${webservicename}"/>
+      <arg value="${webservicerouterfile}"/>
     </exec>
   </target>
-  <target name="php-webserver-start" description="Start a simple webserver for PHP files" depends="drupal-setup">
-    <exec executable="${scriptsdir}/start_php_web.sh" dir="${basedir}/${drupalroot}" spawn="true">
-        </exec>
-  </target>
-  <target name="php-webserver-stop" description="Stop a simple webserver for PHP files">
-    <exec executable="${scriptsdir}/stop_php_web.sh" dir="${basedir}/${drupalroot}" spawn="true">
-        </exec>
-  </target>
-  <target name="phantomjs-start" description="Start a phantomjs">
-    <exec executable="${scriptsdir}/start_phantomjs.sh" dir="${scriptsdir}" spawn="true">
+  <target name="webservice-stop" if="scriptsdir.exists" description="Stop the web service">
+    <exec executable="${scriptsdir}/stop_service.sh" dir="${basedir}" spawn="true">
+      <arg value="${webservicename}"/>
     </exec>
-  </target>
-  <target name="phantomjs-stop" description="Stop a phantomjs">
-    <exec executable="${scriptsdir}/stop_phantomjs.sh" dir="${scriptsdir}" spawn="true">
-    </exec>
-  </target>
-  <target name="webserver-start" description="Start a simple webserver for json files">
-    <exec executable="${scriptsdir}/start_web.sh" dir="${scriptsdir}" spawn="true">
-        </exec>
-  </target>
-  <target name="webserver-stop" description="Stop a simple webserver for json files">
-    <exec executable="${scriptsdir}/stop_web.sh" dir="${scriptsdir}" spawn="true">
-        </exec>
   </target>
   <target name="database-configure" description="Configure settings.local.php file" if="settings.local.php.exists">
     <copy file="${basedir}/${drupalroot}/sites/default/example.settings.local.php" tofile="${basedir}/${drupalroot}/sites/default/settings.local.php" overwrite="yes"/>
@@ -509,31 +515,22 @@
       <arg value="--yes"/>
     </exec>
   </target>
-  <target name="web-service-start" description="Start the web service" if="webservicename">
-    <exec executable="${scriptsdir}/start_service.sh" dir="${scriptsdir}" spawn="true">
-      <arg value="${webservicename}"/>
-      <if>
-        <not>
-          <equals arg1="${webservicerouterfile}" arg2=""/>
-          <then>
-            <arg value="${webservicerouterfile}"/>
-          </then>
-        </not>
-      </if>
-    </exec>
-  </target>
-  <target name="web-service-stop" description="Stop the web service" if="webservicename">
-    <exec executable="${scriptsdir}/stop_service.sh" dir="${basedir}" spawn="true">
-      <arg value="${webservicename}"/>
-    </exec>
-  </target>
-  <target name="combine-junit-xml" description="Combine JUnits xml results files into a single for using on other apps.">
-    <copy file="${builddir}/coverage/combined_clover.xml" todir="${builddir}/logs" failonerror="false"/>
-    <fileset id="fileset" dir="${builddir}/behat">
+  <target name="junit-xml-check" description="Checks whether JUnits XML results files exists">
+    <fileset id="behat-xml-files" dir="${builddir}/behat">
       <include name="*.xml"/>
     </fileset>
-    <pathconvert refid="fileset" property="converted" pathsep=" "/>
-    <exec executable="${composerdir}/merge_junit_results.py" output="${builddir}/logs/junit/combined_junit.xml" failonerror="false">
+    <fail message="Behat XML files not found!">
+      <condition>
+        <not>
+          <resourcecount refid="behat-xml-files" when="greater" count="0"/>
+        </not>
+      </condition>
+    </fail>
+  </target>
+  <target name="combine-junit-xml" depends="junit-xml-check" description="Combine JUnits XML results files into a single for using on other apps">
+    <copy file="${builddir}/coverage/combined_clover.xml" todir="${builddir}/logs" failonerror="false"/>
+    <pathconvert refid="behat-xml-files" property="converted" pathsep=" "/>
+    <exec executable="${scriptsdir}/merge_junit_results.py" output="${builddir}/logs/junit/combined_junit.xml" failonerror="false">
       <env key="PATH" value="/opt/rh/python27/root/usr/bin:${env.PATH}"/>
       <env key="LD_LIBRARY_PATH" value="/opt/rh/python27/root/usr/lib64:${env.LD_LIBRARY_PATH}"/>
       <arg line="${converted}"/>
@@ -545,8 +542,15 @@
     </exec>
   </target>
   <!-- Drupal targets -->
-  <target name="drupal-build" depends="drupal-install,modules-enable-contrib,modules-enable-custom,modules-enable-features,drush-composer"/>
-  <target name="drush-composer" description="Drush to install composer dependencies" if="drupal.exists" depends="composer,drupal-setup">
+  <target name="drupal-build" depends="drupal-install,modules-enable-contrib,modules-enable-custom,modules-enable-features,drupal-composer"/>
+  <target name="drupal-code-coverage-enable" depends="drupal-setup" description="Drush to enable code_coverage module to allow its capture during BDD tests">
+    <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
+      <arg value="-y"/>
+      <arg value="en"/>
+      <arg value="code_coverage"/>
+    </exec>
+  </target>
+  <target name="drupal-composer" description="Drush to install composer dependencies" if="drupal.exists" depends="composer,drupal-setup">
     <exec executable="${vendorbindir}/drush" dir="${basedir}/${drupalroot}">
       <arg value="-y"/>
       <arg value="en"/>
