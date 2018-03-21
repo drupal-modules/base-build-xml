@@ -63,7 +63,7 @@
   <condition property="parallel-lint" value="${vendorbindir}/parallel-lint.bat" else="${vendorbindir}/parallel-lint">
     <os family="windows"/>
   </condition>
-  <target name="build" depends="prepare,parallel-lint,phploc,pdepend,phpmd-ci,phpcs-security-ci,phpcs-coder-ci,phpcpd,phpunit,behat,phpcov,phpcb"/>
+  <target name="build" depends="prepare,parallel-lint,phploc,pdepend,phpmd-ci,phpcs-security-ci,phpcs-coder-ci,phpcpd,phpunit,behat,phpcov,phpcbf"/>
   <target name="build-parallel" depends="prepare,run-tests"/>
   <target name="run-tests" description="Run tools in parallel">
     <parallel threadCount="2">
@@ -73,7 +73,7 @@
       </sequential>
       <antcall target="docblox"/>
       <antcall target="parallel-lint"/>
-      <antcall target="phpcb"/>
+      <antcall target="phpcbf"/>
       <antcall target="phpcov"/>
       <antcall target="phpcpd"/>
       <antcall target="phpcs-coder-ci"/>
@@ -90,6 +90,7 @@
     <delete dir="${builddir}/coverage"/>
     <delete dir="${builddir}/logs"/>
     <delete dir="${builddir}/pdepend"/>
+    <delete dir="${builddir}/phpcbf"/>
     <delete dir="${builddir}/phpcs"/>
     <delete dir="${builddir}/phploc"/>
     <delete dir="${builddir}/phpmd"/>
@@ -106,6 +107,7 @@
     <mkdir dir="${builddir}/logs/coverage"/>
     <mkdir dir="${builddir}/logs/junit"/>
     <mkdir dir="${builddir}/pdepend"/>
+    <mkdir dir="${builddir}/phpcbf"/>
     <mkdir dir="${builddir}/phpcs"/>
     <mkdir dir="${builddir}/phpdox"/>
     <mkdir dir="${builddir}/phploc"/>
@@ -415,10 +417,10 @@
     </exec>
     <echo message="${output-composer-config}"/>
   </target>
-  <target name="phpcb" depends="composer" description="Aggregate tool output with PHP_CodeBrowser" if="drupal.exists">
-    <exec executable="${vendorbindir}/phpcb">
+  <target name="phpcbf" depends="composer" description="Aggregate tool output with PHP_CodeBrowser" if="drupal.exists">
+    <exec executable="${vendorbindir}/phpcbf">
       <arg value="--log"/>
-      <arg path="${builddir}/logs"/>
+      <arg path="${builddir}/phpcbf"/>
       <arg value="--source"/>
       <arg path="${drupalroot}/${drupalmodules}"/>
       <arg value="--output"/>
