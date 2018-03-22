@@ -42,7 +42,10 @@
   <property name="fileexts" value="php,module,inc,install,profile,theme"/>
   <property name="fileextsexp" value="*.php,*.module,*.inc,*.install,*.profile,*.theme"/>
   <property name="phpunitxml" value="${composerdir}/phpunit-ci.xml"/>
-  <property name="pdependarg" value="--quiet"/>
+  <!-- Custom argument for pdepend. -->
+  <property name="pdepend.arg1" value="--quiet"/>
+  <!-- List of exclude directories for pdepend. -->
+  <property name="pdepend.ignore" value=""/>
   <property name="webservicename" value=""/>
   <property name="webservicerouterfile" value=""/>
   <available file="${basedir}/${drupalroot}/index.php" property="drupal.exists"/>
@@ -198,7 +201,8 @@
       <arg value="--jdepend-chart=${builddir}/pdepend/jdepend-dependency-chart.svg"/>
       <arg value="--overview-pyramid=${builddir}/pdepend/pdepend-overview-pyramid.svg"/>
       <arg value="--summary-xml=${builddir}/pdepend/pdepend-summary.xml"/>
-      <arg value="${pdependarg}"/>
+      <arg value="--ignore=${pdepend.ignore}"/>
+      <arg value="${pdepend.arg1}"/>
       <arg path="${drupalroot}/${drupalmodules}"/>
     </exec>
     <available file="${builddir}/pdepend/pdepend-summary.xml" property="pdepend.xml.present"/>
