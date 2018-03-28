@@ -17,7 +17,7 @@
     "phploc/phploc":                   "4.*@stable",
     "phpmd/phpmd":                     "2.*@stable",
     "phpunit/phpcov":                  "4.*@stable",
-    "phpunit/phpunit":                 "6.*@stable",
+    "phpunit/phpunit":                 "^6.5@stable",
     "phpunit/phpunit-selenium":        ">=1.2@stable",
     "sebastian/phpcpd":                "3.*@stable",
     "squizlabs/php_codesniffer":       "2.*@stable",
