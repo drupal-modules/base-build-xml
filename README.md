@@ -5,7 +5,7 @@ Base Ant build config to be imported for Drupal projects.
 
 ### Build status
 
-Build status: ![base-build-xml CI status](https://api.travis-ci.org/National-Theatre/base-build-xml.svg?branch=master)
+Build status: [![base-build-xml CI status](https://api.travis-ci.org/National-Theatre/base-build-xml.svg?branch=master)](https://travis-ci.org/National-Theatre/base-build-xml)
 
 ### Prerequisites
 
