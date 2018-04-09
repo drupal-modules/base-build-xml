@@ -18,7 +18,6 @@
     "phpmd/phpmd":                     "^2.6@stable",
     "phpunit/phpcov":                  "^4.0@stable",
     "phpunit/phpunit":                 "^6.5@stable",
-    "phpunit/phpunit-selenium":        "^4.1@stable",
     "sebastian/phpcpd":                "^3.0@stable",
     "squizlabs/php_codesniffer":       "^2.9@stable",
     "vipsoft/code-coverage-extension": "^2.5@stable"
